@@ -1,0 +1,2596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Farm Ledger</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f0f4f0;color:#222;font-size:15px;padding-bottom:20px}
+header{background:#2d6a2d;color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100}
+header h1{font-size:18px;flex:1}
+.tab-bar{display:flex;background:#1e4d1e;overflow-x:auto;position:sticky;top:52px;z-index:99}
+.tab-bar button{flex:1;padding:10px 4px;background:none;border:none;color:#aed6ae;font-size:12px;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent}
+.tab-bar button.active{color:#fff;border-bottom-color:#7ecf7e}
+.subtab-bar{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px}
+.subtab-btn{padding:6px 13px;border-radius:20px;border:1px solid #ccc;background:#fff;font-size:12px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.subtab-btn.active{background:#2d6a2d;color:#fff;border-color:#2d6a2d}
+.subtab-btn.active.goat-accent{background:#8e44ad;border-color:#8e44ad}
+.page{display:none;padding:12px}
+.page.active{display:block}
+.subpage{display:none}
+.subpage.active{display:block}
+.card{background:#fff;border-radius:10px;padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.card h3{font-size:14px;color:#2d6a2d;margin-bottom:10px;font-weight:700}
+.form-group{margin-bottom:10px}
+.form-group label{display:block;font-size:12px;color:#555;margin-bottom:4px;font-weight:600}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:9px 10px;border:1px solid #ccc;border-radius:7px;font-size:14px;background:#fafafa}
+.form-group textarea{height:60px;resize:vertical}
+.btn{padding:10px 18px;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600}
+.btn-primary{background:#2d6a2d;color:#fff;width:100%}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:6px}
+.btn-green{background:#2d6a2d;color:#fff}
+.btn-purple{background:#8e44ad;color:#fff}
+.btn-red{background:#c0392b;color:#fff}
+.btn-blue{background:#2471a3;color:#fff}
+.btn-orange{background:#d35400;color:#fff}
+.btn-gray{background:#eee;color:#333}
+.btn-gold{background:#c08a28;color:#fff}
+.animal-card{background:#fff;border-radius:10px;padding:12px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.08);border-left:4px solid #2d6a2d;display:flex;gap:10px}
+.animal-card.goat{border-left-color:#8e44ad}
+.animal-card.cow{border-left-color:#2471a3}
+.animal-card.bull{border-left-color:#c0392b}
+.animal-thumb{width:52px;height:52px;border-radius:8px;object-fit:cover;flex-shrink:0;background:#eee}
+.animal-thumb-placeholder{width:52px;height:52px;border-radius:8px;flex-shrink:0;background:#eee;display:flex;align-items:center;justify-content:center;font-size:22px}
+.animal-tag{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;margin-bottom:6px}
+.tag-bull{background:#fdecea;color:#c0392b}
+.tag-cow{background:#eaf2ff;color:#2471a3}
+.tag-goat,.tag-buck,.tag-doe,.tag-kid{background:#f5eef8;color:#8e44ad}
+.animal-name{font-size:15px;font-weight:700;color:#222}
+.animal-meta{font-size:12px;color:#666;margin-top:3px}
+.badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:600}
+.badge-green{background:#d5f5e3;color:#1e8449}
+.badge-red{background:#fdecea;color:#c0392b}
+.badge-orange{background:#fef9e7;color:#d35400}
+.badge-gray{background:#eee;color:#777}
+.expense-item{border-bottom:1px solid #eee;padding:8px 0}
+.expense-item:last-child{border-bottom:none}
+.expense-row{display:flex;justify-content:space-between;align-items:center}
+.expense-amount{font-weight:700;color:#c0392b}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.section-header h2{font-size:16px;font-weight:700;color:#2d6a2d}
+.empty-state{text-align:center;padding:30px;color:#888;font-size:13px}
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:200;overflow-y:auto}
+.modal-overlay.open{display:flex;align-items:flex-start;justify-content:center;padding:20px 12px}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:480px;padding:18px;margin:auto}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.modal-header h3{font-size:16px;font-weight:700;color:#2d6a2d}
+.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:#888}
+.health-item{background:#f9f9f9;border-radius:8px;padding:10px;margin-bottom:8px}
+.health-date{font-size:11px;color:#888}
+.health-type{font-weight:700;font-size:13px}
+.stat-row{display:flex;gap:10px;margin-bottom:12px}
+.stat-box{flex:1;background:#fff;border-radius:10px;padding:12px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.stat-num{font-size:22px;font-weight:700;color:#2d6a2d}
+.stat-label{font-size:11px;color:#666;margin-top:2px}
+.filter-row{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto}
+.filter-btn{padding:6px 14px;border-radius:20px;border:1px solid #ccc;background:#fff;font-size:12px;cursor:pointer;white-space:nowrap}
+.filter-btn.active{background:#2d6a2d;color:#fff;border-color:#2d6a2d}
+.photo-preview{width:80px;height:80px;border-radius:8px;object-fit:cover;margin-top:6px}
+.search-box{width:100%;padding:9px 12px;border:1px solid #ccc;border-radius:20px;font-size:14px;margin-bottom:12px;background:#fff}
+table.datatable{width:100%;border-collapse:collapse;font-size:12.5px;background:#fff;border-radius:10px;overflow:hidden}
+table.datatable th{background:#eef5ee;text-align:left;padding:8px 6px;font-weight:700;color:#444;white-space:nowrap;cursor:pointer}
+table.datatable td{padding:8px 6px;border-top:1px solid #eee;white-space:nowrap}
+.gradient-track{position:relative;height:10px;border-radius:6px;background:linear-gradient(to right,#c0392b,#d35400,#2d6a2d);width:120px}
+.gradient-marker{position:absolute;top:0;bottom:0;width:2px;background:#fff}
+.milk-track{position:relative;height:10px;border-radius:6px;background:#eee;width:120px;overflow:hidden}
+.milk-fill{position:absolute;top:0;bottom:0;left:0;background:#2d6a2d}
+.milk-dry{position:absolute;top:0;bottom:0;background:#c08a28}
+.milk-marker{position:absolute;top:0;bottom:0;width:2px;background:#fff}
+.warn-box{background:#fef9e7;border:1px solid #f1c86b;border-radius:10px;padding:12px;margin-bottom:12px;font-size:12.5px;color:#8a6212}
+.related-option{color:#c0392b}
+.small-note{font-size:11px;color:#888;margin-top:4px}
+.sire-toggle{display:flex;gap:8px;margin-bottom:8px}
+.sire-toggle button{flex:1;padding:7px;border-radius:8px;border:1px solid #ccc;background:#fff;font-size:12px;cursor:pointer}
+.sire-toggle button.active{background:#2d6a2d;color:#fff;border-color:#2d6a2d}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+</style>
+</head>
+<body>
+
+<div id="storage-banner" style="background:#fff3cd;color:#7a5c00;padding:8px 12px;font-size:11.5px;text-align:center;border-bottom:2px solid #f1c86b">
+  📌 <b>Important:</b> After opening this once, use Chrome's menu → <b>"Add to Home Screen"</b> — then always open the app from that icon, never from Downloads. Opening from Downloads each time can lose your data.
+  <button onclick="document.getElementById('storage-banner').style.display='none'" style="margin-left:6px;background:none;border:1px solid #7a5c00;border-radius:10px;padding:1px 8px;font-size:10px;color:#7a5c00">Got it</button>
+</div>
+<div id="diag-banner" style="background:#222;color:#fff;padding:6px 12px;font-size:11px;text-align:center"></div>
+
+<header>
+  <span style="font-size:22px">🌿</span>
+  <h1>Farm Ledger</h1>
+  <span id="header-sync-dot" style="font-size:11px;opacity:0.95">●</span>
+</header>
+
+<div class="tab-bar">
+
+  <button class="tab-bar-btn active" onclick="showTopPage('dashboard')">🏠 Home</button>
+  <button class="tab-bar-btn" onclick="showTopPage('cattle')">🐄 Cattle</button>
+  <button class="tab-bar-btn" onclick="showTopPage('goats')">🐐 Goats</button>
+  <button class="tab-bar-btn" onclick="showTopPage('labour')">👥 Labour</button>
+  <button class="tab-bar-btn" onclick="showTopPage('finance')">💰 Finance</button>
+  <button class="tab-bar-btn" onclick="showTopPage('backup')">🔄 Backup</button>
+</div>
+
+<!-- ================= DASHBOARD ================= -->
+<div id="page-dashboard" class="page active">
+  <h2 style="font-size:16px;font-weight:700;color:#2d6a2d;margin-bottom:12px">Overview</h2>
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-num" id="d-bulls">0</div><div class="stat-label">Bulls</div></div>
+    <div class="stat-box"><div class="stat-num" id="d-cows">0</div><div class="stat-label">Dairy Cows</div></div>
+    <div class="stat-box"><div class="stat-num" id="d-goats">0</div><div class="stat-label">Goats</div></div>
+    <div class="stat-box"><div class="stat-num" id="d-milk">0 L</div><div class="stat-label">Milk (mo.)</div></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-num" id="d-cattle-pl" style="font-size:16px">৳0</div><div class="stat-label">Cattle P&L</div></div>
+    <div class="stat-box"><div class="stat-num" id="d-goat-pl" style="font-size:16px">৳0</div><div class="stat-label">Goat P&L</div></div>
+    <div class="stat-box"><div class="stat-num" id="d-net-pl" style="font-size:16px">৳0</div><div class="stat-label">Net Profit</div></div>
+  </div>
+  <div id="d-alerts"></div>
+  <div class="card">
+    <h3>🩺 Health due within 14 days</h3>
+    <div id="d-health-due"></div>
+  </div>
+  <div class="card">
+    <h3>🍼 Birth countdown</h3>
+    <div id="d-birth-countdown"></div>
+  </div>
+  <div class="card">
+    <h3>🥛 Milking status</h3>
+    <div id="d-milking"></div>
+    <div class="small-note">Gold = last 60-day dry period before next expected calving.</div>
+  </div>
+</div>
+
+<!-- ================= CATTLE ================= -->
+<div id="page-cattle" class="page">
+  <div class="subtab-bar">
+    <button class="subtab-btn active" onclick="showSub('cattle','animals',this)">Animals</button>
+    <button class="subtab-btn" onclick="showSub('cattle','health',this)">Health</button>
+    <button class="subtab-btn" onclick="showSub('cattle','breeding',this)">Breeding</button>
+    <button class="subtab-btn" onclick="showSub('cattle','milk',this)">Milk</button>
+    <button class="subtab-btn" onclick="showSub('cattle','feed',this)">Feed & Exp.</button>
+    <button class="subtab-btn" onclick="showSub('cattle','sales',this)">Weight & Sales</button>
+    <button class="subtab-btn" onclick="showSub('cattle','ranking',this)">Ranking</button>
+  </div>
+
+  <div id="cattle-animals" class="subpage active">
+    <div class="section-header"><h2>Cattle</h2><button class="btn btn-sm btn-green" onclick="openAnimalModal('cattle')">+ Add</button></div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setAnimalView('cattle','active',this)">Active</button>
+      <button class="filter-btn" onclick="setAnimalView('cattle','archived',this)">Sold & Deceased</button>
+    </div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="filterAnimals('cattle','all',this)">All</button>
+      <button class="filter-btn" onclick="filterAnimals('cattle','bull',this)">Bulls</button>
+      <button class="filter-btn" onclick="filterAnimals('cattle','cow',this)">Cows</button>
+    </div>
+    <input type="text" class="search-box" placeholder="🔍 Search..." oninput="searchAnimals('cattle',this.value)">
+    <div id="cattle-animal-list"></div>
+  </div>
+
+  <div id="cattle-health" class="subpage">
+    <div class="section-header"><h2>Health & Vaccinations</h2><button class="btn btn-sm btn-green" onclick="openHealthModal('cattle')">+ Add</button></div>
+    <div id="cattle-health-list"></div>
+  </div>
+
+  <div id="cattle-breeding" class="subpage">
+    <div class="section-header"><h2>Breeding & Lineage</h2><button class="btn btn-sm btn-green" onclick="openBreedingModal('cattle')">+ Add</button></div>
+    <div id="cattle-breeding-list"></div>
+  </div>
+
+  <div id="cattle-milk" class="subpage">
+    <div class="section-header"><h2>🥛 Milk Production (per cow)</h2><button class="btn btn-sm btn-green" onclick="openMilkModal()">+ Add</button></div>
+    <div class="small-note" style="margin-bottom:10px">Record each cow's daily yield here — this is just what she produced, not what was sold.</div>
+    <div id="cattle-milk-list"></div>
+
+    <div class="section-header" style="margin-top:20px"><h2>💰 Milk Sold (pooled, whole farm)</h2><button class="btn btn-sm btn-gold" onclick="openMilkSaleModal()">+ Add</button></div>
+    <div class="small-note" style="margin-bottom:10px">After calves are fed, the rest gets mixed and sold as one batch — log the total liters sold and total money received here; the rate works out automatically.</div>
+    <div id="cattle-milksale-list"></div>
+
+    <div class="section-header" style="margin-top:20px"><h2>📊 Monthly Milk Report</h2></div>
+    <input type="month" id="milk-report-month" style="padding:8px;border:1px solid #ccc;border-radius:7px;font-size:13px;margin-bottom:12px" onchange="renderMilkReport()">
+    <div id="milk-report"></div>
+  </div>
+
+  <div id="cattle-feed" class="subpage">
+    <div class="section-header"><h2>Feed & Expenses</h2><button class="btn btn-sm btn-green" onclick="openFeedModal('cattle')">+ Add</button></div>
+    <div id="cattle-feed-list"></div>
+  </div>
+
+  <div id="cattle-sales" class="subpage">
+    <div class="section-header"><h2>Weight & Sales</h2><button class="btn btn-sm btn-green" onclick="openSaleModal('cattle')">+ Add</button></div>
+    <div id="cattle-sales-list"></div>
+  </div>
+
+  <div id="cattle-ranking" class="subpage">
+    <h2 style="font-size:16px;font-weight:700;color:#2d6a2d;margin-bottom:8px">Weight Ranking</h2>
+    <div class="small-note" style="margin-bottom:8px">Tap a column heading to sort by it.</div>
+    <div id="cattle-ranking-table"></div>
+  </div>
+</div>
+
+<!-- ================= GOATS ================= -->
+<div id="page-goats" class="page">
+  <div class="subtab-bar">
+    <button class="subtab-btn active goat-accent" onclick="showSub('goats','animals',this)">Animals</button>
+    <button class="subtab-btn" onclick="showSub('goats','health',this)">Health</button>
+    <button class="subtab-btn" onclick="showSub('goats','breeding',this)">Breeding</button>
+    <button class="subtab-btn" onclick="showSub('goats','feed',this)">Feed & Exp.</button>
+    <button class="subtab-btn" onclick="showSub('goats','sales',this)">Weight & Sales</button>
+    <button class="subtab-btn" onclick="showSub('goats','ranking',this)">Ranking</button>
+  </div>
+
+  <div id="goats-animals" class="subpage active">
+    <div class="section-header"><h2>Goats</h2><button class="btn btn-sm btn-purple" onclick="openAnimalModal('goats')">+ Add</button></div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setAnimalView('goats','active',this)">Active</button>
+      <button class="filter-btn" onclick="setAnimalView('goats','archived',this)">Sold & Deceased</button>
+    </div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="filterAnimals('goats','all',this)">All</button>
+      <button class="filter-btn" onclick="filterAnimals('goats','buck',this)">Bucks</button>
+      <button class="filter-btn" onclick="filterAnimals('goats','doe',this)">Does</button>
+      <button class="filter-btn" onclick="filterAnimals('goats','kid',this)">Kids</button>
+    </div>
+    <input type="text" class="search-box" placeholder="🔍 Search..." oninput="searchAnimals('goats',this.value)">
+    <div id="goats-animal-list"></div>
+  </div>
+
+  <div id="goats-health" class="subpage">
+    <div class="section-header"><h2>Health & Vaccinations</h2><button class="btn btn-sm btn-purple" onclick="openHealthModal('goats')">+ Add</button></div>
+    <div id="goats-health-list"></div>
+  </div>
+
+  <div id="goats-breeding" class="subpage">
+    <div class="section-header"><h2>Breeding & Lineage</h2><button class="btn btn-sm btn-purple" onclick="openBreedingModal('goats')">+ Add</button></div>
+    <div id="goats-breeding-list"></div>
+  </div>
+
+  <div id="goats-feed" class="subpage">
+    <div class="section-header"><h2>Feed & Expenses</h2><button class="btn btn-sm btn-purple" onclick="openFeedModal('goats')">+ Add</button></div>
+    <div id="goats-feed-list"></div>
+  </div>
+
+  <div id="goats-sales" class="subpage">
+    <div class="section-header"><h2>Weight & Sales</h2><button class="btn btn-sm btn-purple" onclick="openSaleModal('goats')">+ Add</button></div>
+    <div id="goats-sales-list"></div>
+  </div>
+
+  <div id="goats-ranking" class="subpage">
+    <h2 style="font-size:16px;font-weight:700;color:#8e44ad;margin-bottom:8px">Weight Ranking</h2>
+    <div class="small-note" style="margin-bottom:8px">Tap a column heading to sort by it.</div>
+    <div id="goats-ranking-table"></div>
+  </div>
+</div>
+
+<!-- ================= LABOUR ================= -->
+<div id="page-labour" class="page">
+  <div class="subtab-bar">
+    <button class="subtab-btn active" onclick="showSub('labour','employees',this)">Employees</button>
+    <button class="subtab-btn" onclick="showSub('labour','attendance',this)">Absence & OT</button>
+    <button class="subtab-btn" onclick="showSub('labour','advances',this)">Advances</button>
+    <button class="subtab-btn" onclick="showSub('labour','payroll',this)">Payroll</button>
+  </div>
+  <div id="labour-employees" class="subpage active">
+    <div class="section-header"><h2>Employees</h2><button class="btn btn-sm btn-gold" onclick="openEmployeeModal()">+ Add</button></div>
+    <div id="labour-employee-list"></div>
+  </div>
+  <div id="labour-attendance" class="subpage">
+    <div class="section-header"><h2>Absence &amp; Overtime</h2><button class="btn btn-sm btn-gold" onclick="openAttendanceModal()">+ Add</button></div>
+    <div class="small-note" style="margin-bottom:10px">Only log the exceptions — every day you don't log is automatically counted as a normal present day.</div>
+    <div id="labour-attendance-list"></div>
+  </div>
+  <div id="labour-advances" class="subpage">
+    <div class="section-header"><h2>Advances</h2><button class="btn btn-sm btn-gold" onclick="openAdvanceModal()">+ Add</button></div>
+    <div class="small-note" style="margin-bottom:10px">Money already given to an employee this month — subtracted from what's still owed at month end.</div>
+    <div id="labour-advance-list"></div>
+  </div>
+  <div id="labour-payroll" class="subpage">
+    <h2 style="font-size:16px;font-weight:700;color:#c08a28;margin-bottom:8px">Payroll</h2>
+    <input type="month" id="payroll-month" style="padding:8px;border:1px solid #ccc;border-radius:7px;font-size:13px;margin-bottom:12px" onchange="renderPayroll()">
+    <div id="labour-payroll-table"></div>
+  </div>
+</div>
+
+<!-- ================= FINANCE ================= -->
+<div id="page-finance" class="page">
+  <h2 style="font-size:16px;font-weight:700;color:#c08a28;margin-bottom:12px">Finance</h2>
+
+  <div class="card" style="background:#eef5ee">
+    <h3>📦 Net Worth &amp; Total Costing — the real picture</h3>
+    <div class="small-note" style="margin-bottom:10px">Net Profit/Loss = (value of animals you still own + all money already earned from milk &amp; animal sales) − everything ever spent.</div>
+    <div class="two-col" style="margin-bottom:10px">
+      <div class="form-group"><label>Cattle rate (৳/kg live weight)</label><input type="number" id="rate-cattle" onchange="saveRates()"></div>
+      <div class="form-group"><label>Goat rate (৳/kg live weight)</label><input type="number" id="rate-goat" onchange="saveRates()"></div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-num" id="nw-cattle" style="font-size:15px">৳0</div><div class="stat-label">Net Worth — Cattle</div></div>
+      <div class="stat-box"><div class="stat-num" id="nw-goat" style="font-size:15px">৳0</div><div class="stat-label">Net Worth — Goats</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-num" id="inv-cattle" style="font-size:14px">৳0</div><div class="stat-label">Investment in Active Cattle</div></div>
+      <div class="stat-box"><div class="stat-num" id="inv-goat" style="font-size:14px">৳0</div><div class="stat-label">Investment in Active Goats</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-num" id="earn-cattle" style="font-size:14px">৳0</div><div class="stat-label">Earning from Cow (milk+sales)</div></div>
+      <div class="stat-box"><div class="stat-num" id="earn-goat" style="font-size:14px">৳0</div><div class="stat-label">Earning from Goat (sales)</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-num" id="f-cattle-pl" style="font-size:14px">৳0</div><div class="stat-label">Cattle P&L</div></div>
+      <div class="stat-box"><div class="stat-num" id="f-goat-pl" style="font-size:14px">৳0</div><div class="stat-label">Goat P&L</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-num" id="nw-total" style="font-size:18px">৳0</div><div class="stat-label">Net Worth (Cattle + Goats)</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-num" id="f-labour-oh" style="font-size:14px">৳0</div><div class="stat-label">Labour+Overhead</div></div>
+      <div class="stat-box"><div class="stat-num" id="nw-costing" style="font-size:14px">৳0</div><div class="stat-label">Total Animal Costing (all-time)</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-num" id="nw-realized" style="font-size:18px">৳0</div><div class="stat-label">Realized Income (sold so far)</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-num" id="nw-netprofit" style="font-size:20px">৳0</div><div class="stat-label">Net Profit / Loss (overall)</div></div>
+    </div>
+
+    <div id="nw-note" class="small-note" style="margin-top:8px"></div>
+    <div class="small-note">"Investment in Active" = cost tied up in animals you still own (informational). "Total Animal Costing" = every animal ever, including sold/deceased — this is what actually gets subtracted below, since a sold animal's original cost still counts even though it's no longer "active."</div>
+    <h3 style="margin-top:14px">Active herd value breakdown</h3>
+    <div id="nw-breakdown-table"></div>
+  </div>
+
+  <h3 style="font-size:13px;color:#666;margin:16px 0 4px">Realized Cash P&amp;L (sold/earned only — doesn't count unsold animals as worth anything)</h3>
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-num" id="f-net" style="font-size:15px">৳0</div><div class="stat-label">Realized Cash Profit</div></div>
+  </div>
+  <div class="small-note" style="margin-bottom:10px">This counts every animal's purchase/raising cost as an expense the moment it's added — even if you still own it and it's worth plenty. Use the Net Profit/Loss box above for the fuller picture that credits you for animals you still have.</div>
+  <div class="card">
+    <h3>Last 6 months — income vs expense</h3>
+    <div id="f-chart"></div>
+  </div>
+  <div class="section-header"><h2 style="font-size:14px">Farm Overhead</h2><button class="btn btn-sm btn-gold" onclick="openOverheadModal()">+ Add</button></div>
+  <div id="overhead-list"></div>
+
+  <div class="section-header" style="margin-top:20px"><h2 style="font-size:14px">🐄🐐 Animal Profitability (sold animals)</h2></div>
+  <label style="font-size:12.5px;display:flex;align-items:center;gap:6px;margin-bottom:10px">
+    <input type="checkbox" id="profit-include-oh" checked onchange="renderProfitability()"> Include labour &amp; overhead share in cost
+  </label>
+  <div class="small-note" style="margin-bottom:10px">Feed costs not assigned to a specific animal are split fairly by animal type and how long each was on the farm. Toggle the box above to compare profit with vs. without labour &amp; overhead included.</div>
+  <div id="profitability-table"></div>
+</div>
+
+<!-- ================= BACKUP ================= -->
+<div id="page-backup" class="page">
+  <h2 style="font-size:16px;font-weight:700;color:#c08a28;margin-bottom:12px">Backup & Sync</h2>
+
+  <div class="card">
+    <h3>🔄 Automatic sync — phone ↔ computer</h3>
+    <p class="small-note" style="margin-bottom:8px">When this is on, anything you change here appears on your other device within a second or two, automatically — no codes, no clicking "sync." Just keep this file open (or reopened) on both devices.</p>
+    <div id="sync-status" style="font-size:12px;color:#888;margin-bottom:8px">Checking…</div>
+    <button class="btn btn-sm btn-green" id="sync-toggle-btn" onclick="toggleSync()">⏸️ Pause auto-sync</button>
+  </div>
+
+  <div class="card">
+    <h3>📦 Manual backup — extra safety net</h3>
+    <p style="font-size:13px;color:#555;margin-bottom:10px">Even with auto-sync on, take one of these occasionally — it protects you if this specific browser/device ever loses its data.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-gold" onclick="downloadBackup()">⬇️ Download backup</button>
+      <button class="btn btn-sm btn-blue" id="share-backup-btn" onclick="shareBackup()" style="display:none">📤 Share backup</button>
+      <button class="btn btn-sm btn-gray" onclick="document.getElementById('restore-file').click()">Restore from backup</button>
+      <input type="file" id="restore-file" accept="application/json" style="display:none" onchange="restoreBackup(this)">
+    </div>
+    <div id="backup-msg" style="font-size:12px;color:#2d6a2d;margin-top:8px"></div>
+    <div id="last-backup-note" class="small-note" style="margin-top:6px"></div>
+  </div>
+</div>
+
+
+<!-- ================= MODAL: ANIMAL ================= -->
+<div id="modal-animal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3 id="animal-modal-title">Add Animal</h3><button class="modal-close" onclick="closeModal('modal-animal')">✕</button></div>
+    <div class="form-group"><label>Photo</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn btn-sm btn-blue" onclick="document.getElementById('an-photo-camera').click()">📷 Take Photo</button>
+        <button type="button" class="btn btn-sm btn-gray" onclick="document.getElementById('an-photo-gallery').click()">🖼️ Choose from Gallery</button>
+      </div>
+      <input type="file" id="an-photo-camera" accept="image/*" capture="environment" style="display:none" onchange="previewPhoto(this,'an-photo-preview')">
+      <input type="file" id="an-photo-gallery" accept="image/*" style="display:none" onchange="previewPhoto(this,'an-photo-preview')">
+      <img id="an-photo-preview" class="photo-preview" style="display:none">
+    </div>
+    <div class="form-group"><label>Tag / ID *</label><input type="text" id="an-tag" placeholder="e.g. C-01"></div>
+    <div class="form-group"><label>Type *</label><select id="an-type"></select></div>
+    <div class="form-group"><label>Name</label><input type="text" id="an-name"></div>
+    <div class="form-group"><label>Breed</label><input type="text" id="an-breed"></div>
+
+    <div class="form-group">
+      <label>How did you get this animal? *</label>
+      <div class="sire-toggle">
+        <button type="button" id="origin-mode-bornhere" class="active" onclick="setOriginMode('bornhere')">Born on my farm</button>
+        <button type="button" id="origin-mode-bought" onclick="setOriginMode('bought')">Bought / Acquired</button>
+      </div>
+    </div>
+    <div id="origin-bornhere-block">
+      <div class="form-group"><label>Date of birth</label><input type="date" id="an-dob"></div>
+      <div class="form-group"><label>Birth weight (kg)</label><input type="number" id="an-birthweight"></div>
+    </div>
+    <div id="origin-bought-block" style="display:none">
+      <div class="form-group"><label>Acquired on *</label><input type="date" id="an-acquired-date"></div>
+      <div class="two-col">
+        <div class="form-group"><label>Weight at purchase (kg)</label><input type="number" id="an-acquired-weight"></div>
+        <div class="form-group"><label>Cost (৳)</label><input type="number" id="an-acquired-cost"></div>
+      </div>
+      <div class="small-note">If you happen to know its birth date/weight too, you can still add those:</div>
+      <div class="two-col">
+        <div class="form-group"><label>Date of birth</label><input type="date" id="an-dob-bought"></div>
+        <div class="form-group"><label>Birth weight (kg)</label><input type="number" id="an-birthweight-bought"></div>
+      </div>
+    </div>
+
+    <div class="form-group"><label>Mother (if known)</label><select id="an-dam" onchange="onAnimalDamOrSireChange()"></select></div>
+    <div class="form-group">
+      <label>Father (if known)</label>
+      <div class="sire-toggle">
+        <button type="button" id="an-sire-mode-internal" class="active" onclick="setAnimalSireMode('internal')">Home bred</button>
+        <button type="button" id="an-sire-mode-external" onclick="setAnimalSireMode('external')">AI bull</button>
+      </div>
+      <div id="an-sire-internal-block">
+        <select id="an-sire" onchange="onAnimalDamOrSireChange()"></select>
+        <div id="an-sire-warning" class="small-note"></div>
+      </div>
+      <div id="an-sire-external-block" style="display:none" class="two-col">
+        <input type="text" id="an-ext-sire-id" placeholder="AI bull ID">
+        <input type="text" id="an-ext-sire-breed" placeholder="Breed (optional)">
+      </div>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea id="an-notes"></textarea></div>
+    <input type="hidden" id="an-species"><input type="hidden" id="an-edit-id"><input type="hidden" id="an-edit-status">
+    <button class="btn btn-primary" onclick="saveAnimal()">Save Animal</button>
+  </div>
+</div>
+
+
+<!-- ================= MODAL: ANIMAL DETAIL ================= -->
+<div id="modal-animal-detail" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3 id="detail-title">Animal Detail</h3><button class="modal-close" onclick="closeModal('modal-animal-detail')">✕</button></div>
+    <div id="detail-body"></div>
+  </div>
+</div>
+
+<!-- ================= MODAL: HEALTH ================= -->
+<div id="modal-health" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3>Add Health Record</h3><button class="modal-close" onclick="closeModal('modal-health')">✕</button></div>
+    <div class="form-group"><label>Animal *</label><select id="he-animal"></select></div>
+    <div class="form-group"><label>Type *</label><select id="he-type"><option>Vaccination</option><option>Treatment</option><option>Deworming</option><option>Checkup</option></select></div>
+    <div class="form-group"><label>Date *</label><input type="date" id="he-date"></div>
+    <div class="form-group"><label>Description</label><input type="text" id="he-desc"></div>
+    <div class="form-group"><label>Cost (৳)</label><input type="number" id="he-cost"></div>
+    <div class="form-group"><label>Next due date</label><input type="date" id="he-next"></div>
+    <input type="hidden" id="he-species">
+    <button class="btn btn-primary" onclick="saveHealth()">Save Record</button>
+  </div>
+</div>
+
+<!-- ================= MODAL: BREEDING ================= -->
+<div id="modal-breeding" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3>Add Breeding Record</h3><button class="modal-close" onclick="closeModal('modal-breeding')">✕</button></div>
+    <div class="form-group"><label>Dam (mother) *</label><select id="br-dam" onchange="onDamChange()"></select></div>
+    <div class="form-group">
+      <label>Sire (father) *</label>
+      <div class="sire-toggle">
+        <button type="button" id="sire-mode-internal" class="active" onclick="setSireMode('internal')">Home bred</button>
+        <button type="button" id="sire-mode-external" onclick="setSireMode('external')">External / AI</button>
+      </div>
+      <div id="sire-internal-block">
+        <select id="br-sire" onchange="onSireChange()"></select>
+        <div id="sire-warning" class="small-note"></div>
+      </div>
+      <div id="sire-external-block" style="display:none" class="two-col">
+        <input type="text" id="br-ext-sire-id" placeholder="Bull/buck ID *">
+        <input type="text" id="br-ext-sire-breed" placeholder="Breed (optional)">
+      </div>
+    </div>
+    <div class="form-group"><label>Breeding date</label><input type="date" id="br-date" onchange="updateDueDate()"></div>
+    <div class="form-group"><label>Expected due date</label><input type="date" id="br-due">
+      <div class="small-note" id="br-due-note"></div>
+    </div>
+    <div class="form-group"><label>Notes</label><input type="text" id="br-notes"></div>
+    <input type="hidden" id="br-species">
+    <button class="btn btn-primary" onclick="saveBreeding()">Save Record</button>
+  </div>
+</div>
+
+<!-- ================= MODAL: CONFIRM BIRTH ================= -->
+<div id="modal-confirm-birth" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3 id="cb-title">Confirm Birth</h3><button class="modal-close" onclick="closeModal('modal-confirm-birth')">✕</button></div>
+    <div class="form-group"><label>Actual birth date *</label><input type="date" id="cb-date"></div>
+    <div class="form-group"><label>Birth weight (kg)</label><input type="number" id="cb-weight"></div>
+    <div class="form-group"><label>Sex *</label><select id="cb-sex"><option value="Female">Female</option><option value="Male">Male</option></select></div>
+    <div class="form-group"><label>Breed</label><input type="text" id="cb-breed"></div>
+    <div class="form-group"><label>New tag / ID *</label><input type="text" id="cb-tag"></div>
+    <div class="form-group"><label>Name</label><input type="text" id="cb-name"></div>
+    <input type="hidden" id="cb-breeding-id"><input type="hidden" id="cb-species">
+    <button class="btn btn-primary" onclick="confirmBirth()">Add to herd</button>
+  </div>
+</div>
+
+<!-- ================= MODAL: MILK PRODUCTION ================= -->
+<div id="modal-milk" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3>Add Milk Production</h3><button class="modal-close" onclick="closeModal('modal-milk')">✕</button></div>
+    <div class="form-group"><label>Cow *</label><select id="mi-animal"></select></div>
+    <div class="form-group"><label>Date *</label><input type="date" id="mi-date"></div>
+    <div class="two-col">
+      <div class="form-group"><label>Morning (L)</label><input type="number" id="mi-morning"></div>
+      <div class="form-group"><label>Evening (L)</label><input type="number" id="mi-evening"></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveMilk()">Save Record</button>
+  </div>
+</div>
+
+<!-- ================= MODAL: MILK SALE (pooled) ================= -->
+<div id="modal-milksale" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3>Add Milk Sold</h3><button class="modal-close" onclick="closeModal('modal-milksale')">✕</button></div>
+    <div class="form-group"><label>Date *</label><input type="date" id="ms-date"></div>
+    <div class="form-group"><label>Liters sold *</label><input type="number" id="ms-liters" oninput="updateMsRatePreview()"></div>
+    <div class="form-group"><label>Total money received (৳) *</label><input type="number" id="ms-amount" oninput="updateMsRatePreview()"></div>
+    <div class="small-note" id="ms-rate-preview" style="margin-bottom:8px">Rate will be calculated automatically.</div>
+    <button class="btn btn-primary" onclick="saveMilkSale()">Save</button>
+  </div>
+</div>
+
+<!-- ================= MODAL: FEED/EXPENSE ================= -->
+<div id="modal-feed" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3>Add Expense</h3><button class="modal-close" onclick="closeModal('modal-feed')">✕</button></div>
+    <div class="form-group"><label>Date *</label><input type="date" id="fe-date"></div>
+    <div class="form-group"><label>Category</label><select id="fe-category"><option>Feed</option><option>Medicine</option><option>Equipment</option><option>Other</option></select></div>
+    <div class="form-group"><label>Item *</label><input type="text" id="fe-item"></div>
+    <div class="two-col">
+      <div class="form-group"><label>Quantity</label><input type="number" id="fe-qty"></div>
+      <div class="form-group"><label>Unit</label><input type="text" id="fe-unit"></div>
+    </div>
+    <div class="form-group"><label>Cost (৳) *</label><input type="number" id="fe-cost"></div>
+    <div class="form-group"><label>Supplier</label><input type="text" id="fe-supplier"></div>
+    <div class="form-group"><label>Assign to a specific animal (optional)</label><select id="fe-animal"><option value="">-- Shared pool (default) --</option></select>
+      <div class="small-note">Leave blank for shared costs (general feed) — the app will split those fairly across all animals. Only pick one when this expense was specifically for that animal.</div>
+    </div>
+    <input type="hidden" id="fe-species">
+    <button class="btn btn-primary" onclick="saveFeed()">Save</button>
+  </div>
+</div>
+
+<!-- ================= MODAL: SALE/WEIGHT ================= -->
+<div id="modal-sale" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3>Add Weight / Sale</h3><button class="modal-close" onclick="closeModal('modal-sale')">✕</button></div>
+    <div class="form-group"><label>Animal *</label><select id="sa-animal"></select></div>
+    <div class="form-group"><label>Date *</label><input type="date" id="sa-date"></div>
+    <div class="form-group"><label>Weight (kg)</label><input type="number" id="sa-weight"></div>
+    <div class="form-group"><label>Event *</label><select id="sa-event" onchange="toggleSaleFields()"><option value="Weigh-in">Weigh-in</option><option value="Sale">Sale</option></select></div>
+    <div id="sale-fields" style="display:none">
+      <div class="form-group"><label>Sale price (৳)</label><input type="number" id="sa-price"></div>
+      <div class="form-group"><label>Buyer</label><input type="text" id="sa-buyer"></div>
+    </div>
+    <input type="hidden" id="sa-species">
+    <button class="btn btn-primary" onclick="saveSale()">Save</button>
+  </div>
+</div>
+
+<!-- ================= MODAL: EMPLOYEE ================= -->
+<div id="modal-employee" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3>Add Employee</h3><button class="modal-close" onclick="closeModal('modal-employee')">✕</button></div>
+    <div class="form-group"><label>Name *</label><input type="text" id="em-name"></div>
+    <div class="form-group"><label>Role</label><select id="em-role"><option>Herder</option><option>Milker</option><option>General Worker</option><option>Guard</option><option>Other</option></select></div>
+    <div class="form-group"><label>Fixed monthly salary (৳) *</label><input type="number" id="em-salary"></div>
+    <div class="form-group"><label>Joined on</label><input type="date" id="em-joined"></div>
+    <div class="two-col">
+      <div class="form-group"><label>Bonus amount (৳)</label><input type="number" id="em-bonus"></div>
+      <div class="form-group"><label>Bonus lost if absent ≥ (days)</label><input type="number" id="em-bonus-limit"></div>
+    </div>
+    <div class="small-note" style="margin-bottom:8px">Example: bonus ৳500, limit 2 → he gets the bonus only if he's absent fewer than 2 days that month. Leave both blank if there's no bonus for this role.</div>
+    <input type="hidden" id="em-edit-id">
+    <button class="btn btn-primary" onclick="saveEmployee()">Save</button>
+  </div>
+</div>
+
+<!-- ================= MODAL: ATTENDANCE (absence/OT exceptions only) ================= -->
+<div id="modal-attendance" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3>Log Absence / Overtime</h3><button class="modal-close" onclick="closeModal('modal-attendance')">✕</button></div>
+    <div class="form-group"><label>Employee *</label><select id="at-employee"></select></div>
+    <div class="form-group"><label>Date *</label><input type="date" id="at-date"></div>
+    <div class="form-group"><label>Type *</label><select id="at-status" onchange="toggleAttendanceFields()"><option value="Absent">Absent (full day)</option><option value="Half-day">Half-day absence</option><option value="OT">Present + overtime</option></select></div>
+    <div class="form-group" id="at-ot-group" style="display:none"><label>Overtime hours</label><input type="number" id="at-ot"></div>
+    <button class="btn btn-primary" onclick="saveAttendance()">Save</button>
+  </div>
+</div>
+
+<!-- ================= MODAL: ADVANCE ================= -->
+<div id="modal-advance" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3>Add Advance</h3><button class="modal-close" onclick="closeModal('modal-advance')">✕</button></div>
+    <div class="form-group"><label>Employee *</label><select id="ad-employee"></select></div>
+    <div class="form-group"><label>Date *</label><input type="date" id="ad-date"></div>
+    <div class="form-group"><label>Amount (৳) *</label><input type="number" id="ad-amount"></div>
+    <div class="form-group"><label>Note</label><input type="text" id="ad-note"></div>
+    <button class="btn btn-primary" onclick="saveAdvance()">Save</button>
+  </div>
+</div>
+
+<!-- ================= MODAL: OVERHEAD ================= -->
+<div id="modal-overhead" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3>Add Overhead Expense</h3><button class="modal-close" onclick="closeModal('modal-overhead')">✕</button></div>
+    <div class="form-group"><label>Date *</label><input type="date" id="oh-date"></div>
+    <div class="form-group"><label>Category</label><select id="oh-category"><option>Utilities</option><option>Land</option><option>Equipment</option><option>Transport</option><option>Other</option></select></div>
+    <div class="form-group"><label>Item *</label><input type="text" id="oh-item"></div>
+    <div class="form-group"><label>Cost (৳) *</label><input type="number" id="oh-cost"></div>
+    <button class="btn btn-primary" onclick="saveOverhead()">Save</button>
+  </div>
+</div>
+
+<script>
+var FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCMoW-1GT-_spYcc__wgkRHYBun_8Bnmc8",
+  authDomain: "naz-agro-farm-ledger-2d338.firebaseapp.com",
+  projectId: "naz-agro-farm-ledger-2d338",
+  storageBucket: "naz-agro-farm-ledger-2d338.firebasestorage.app",
+  messagingSenderId: "262082522403",
+  appId: "1:262082522403:web:46c71cc5dbac07b1f93096"
+};
+var fbDb = null, fbReady = false, fbLoadFailed = false;
+function onFirebaseScriptsLoaded() {
+  try {
+    if (typeof firebase !== 'undefined') {
+      firebase.initializeApp(FIREBASE_CONFIG);
+      fbDb = firebase.firestore();
+      fbReady = true;
+      fbDocRef = fbDb.collection('farmledger').doc('main');
+      initSync();
+    } else { onFirebaseScriptsFailed(); }
+  } catch(e) { onFirebaseScriptsFailed(); }
+}
+function onFirebaseScriptsFailed() {
+  fbReady = false; fbLoadFailed = true;
+  var el = document.getElementById('sync-status');
+  if(el){ el.textContent = 'Could not reach Firebase (check internet) — Manual Backup below still works fully.'; el.style.color = '#c0392b'; }
+  var btn = document.getElementById('sync-toggle-btn');
+  if(btn) btn.style.display = 'none';
+}
+</script>
+<!-- Loaded with defer so a slow/failed connection never blocks the app itself from rendering -->
+<script defer src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js" onerror="onFirebaseScriptsFailed()"></script>
+<script defer src="https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore-compat.js" onload="onFirebaseScriptsLoaded()" onerror="onFirebaseScriptsFailed()"></script>
+<script>
+
+// ================= DATA STORE =================
+var DB = {
+  settings: { name: 'Farm Ledger' },
+  cattle: { animals:[], health:[], breeding:[], milk:[], milkSales:[], feed:[], sales:[] },
+  goats: { animals:[], health:[], breeding:[], feed:[], sales:[] },
+  labour: { employees:[], attendance:[], advances:[] },
+  overhead: { expenses:[] }
+};
+
+function save() {
+  DB.updatedAt = Date.now();
+  try {
+    localStorage.setItem('farmledger2', JSON.stringify(DB));
+  } catch(e) {
+    alert('⚠️ Could not save! Your device storage is full or blocked. This change may NOT be saved. Error: ' + e.message + '\n\nPlease download a backup immediately from the Backup tab using a different device/browser if possible.');
+  }
+  schedulePush();
+}
+function load() {
+  try { var d = localStorage.getItem('farmledger2'); if(d) DB = JSON.parse(d); } catch(e){}
+  if(!DB.cattle) DB.cattle = { animals:[], health:[], breeding:[], milk:[], milkSales:[], feed:[], sales:[] };
+  if(!DB.cattle.milkSales) DB.cattle.milkSales = [];
+  if(!DB.goats) DB.goats = { animals:[], health:[], breeding:[], feed:[], sales:[] };
+  if(!DB.labour) DB.labour = { employees:[], attendance:[], advances:[] };
+  if(!DB.labour.advances) DB.labour.advances = [];
+  if(!DB.overhead) DB.overhead = { expenses:[] };
+}
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).substr(2,5); }
+function todayISO(){ return new Date().toISOString().split('T')[0]; }
+function fmtMoney(n){ return '৳' + Math.round(Number(n||0)).toLocaleString('en-IN'); }
+function daysBetween(a,b){ return Math.round((new Date(b) - new Date(a)) / 86400000); }
+function speciesDB(sp){ return sp === 'cattle' ? DB.cattle : DB.goats; }
+
+// ================= NAVIGATION =================
+function showTopPage(name) {
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.tab-bar-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('page-' + name).classList.add('active');
+  var tabs = document.querySelectorAll('.tab-bar-btn');
+  var map = {dashboard:0, cattle:1, goats:2, labour:3, finance:4, backup:5};
+  tabs[map[name]].classList.add('active');
+  if(name === 'dashboard') renderDashboard();
+  if(name === 'cattle') { renderAnimals('cattle'); renderHealth('cattle'); renderBreeding('cattle'); renderMilk(); renderFeed('cattle'); renderSales('cattle'); renderRanking('cattle'); }
+  if(name === 'goats') { renderAnimals('goats'); renderHealth('goats'); renderBreeding('goats'); renderFeed('goats'); renderSales('goats'); renderRanking('goats'); }
+  if(name === 'labour') { renderEmployees(); renderAttendance(); renderAdvances(); renderPayroll(); }
+  if(name === 'finance') renderFinance();
+  if(name === 'backup') initBackupTab();
+}
+
+function showSub(species, sub, btn) {
+  var prefix = species + '-';
+  document.querySelectorAll('#page-' + species + ' .subpage').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('#page-' + species + ' .subtab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById(prefix + sub).classList.add('active');
+  btn.classList.add('active');
+}
+
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.modal-overlay').forEach(function(overlay){
+    overlay.addEventListener('click', function(e){ if(e.target === overlay) overlay.classList.remove('open'); });
+  });
+});
+
+var pendingPhotoData = null;
+function resizeImageFile(file, maxDim, quality) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var width = img.width, height = img.height;
+        if (width > height && width > maxDim) { height = Math.round(height * (maxDim / width)); width = maxDim; }
+        else if (height >= width && height > maxDim) { width = Math.round(width * (maxDim / height)); height = maxDim; }
+        var canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+function previewPhoto(input, previewId) {
+  var file = input.files[0];
+  if(!file) return;
+  var img = document.getElementById(previewId);
+  img.style.display = 'block'; img.style.opacity = '0.4'; img.src = img.src || '';
+  resizeImageFile(file, 720, 0.55).then(function(dataUrl){
+    pendingPhotoData = dataUrl;
+    img.src = dataUrl;
+    img.style.opacity = '1';
+  }).catch(function(){
+    img.style.opacity = '1';
+    alert('Could not process that photo — please try a different one.');
+  });
+}
+
+function typeOptionsFor(species) {
+  return species === 'cattle'
+    ? [['bull','Bull (Meat)'],['cow','Cow (Dairy)']]
+    : [['buck','Buck (Male)'],['doe','Doe (Female)'],['kid','Kid']];
+}
+function femaleTypes(species){ return species === 'cattle' ? ['cow'] : ['doe']; }
+function maleTypes(species){ return species === 'cattle' ? ['bull'] : ['buck']; }
+function gestationDays(species){ return species === 'cattle' ? 280 : 150; }
+function animalLabel(a){ return a.tag + (a.name ? ' – ' + a.name : ''); }
+function findAnimal(species, id){
+  if(id === 'external') return null;
+  var list = speciesDB(species).animals;
+  for(var i=0;i<list.length;i++) if(list[i].id === id) return list[i];
+  return null;
+}
+function typeLabel(species, t){
+  var opts = typeOptionsFor(species);
+  for(var i=0;i<opts.length;i++) if(opts[i][0] === t) return opts[i][1];
+  return t;
+}
+
+// ================= ANIMALS =================
+var animalFilter = { cattle:'all', goats:'all' };
+var animalSearch = { cattle:'', goats:'' };
+var animalView = { cattle:'active', goats:'active' };
+
+function setOriginMode(mode) {
+  document.getElementById('origin-mode-bornhere').classList.toggle('active', mode==='bornhere');
+  document.getElementById('origin-mode-bought').classList.toggle('active', mode==='bought');
+  document.getElementById('origin-bornhere-block').style.display = mode==='bornhere' ? 'block' : 'none';
+  document.getElementById('origin-bought-block').style.display = mode==='bought' ? 'block' : 'none';
+  document.getElementById('an-species').setAttribute('data-origin-mode', mode);
+}
+function setAnimalSireMode(mode) {
+  document.getElementById('an-sire-mode-internal').classList.toggle('active', mode==='internal');
+  document.getElementById('an-sire-mode-external').classList.toggle('active', mode==='external');
+  document.getElementById('an-sire-internal-block').style.display = mode==='internal' ? 'block' : 'none';
+  document.getElementById('an-sire-external-block').style.display = mode==='external' ? 'grid' : 'none';
+  document.getElementById('an-species').setAttribute('data-an-sire-mode', mode);
+}
+function populateAnimalSireOptions() {
+  var species = document.getElementById('an-species').value;
+  var damId = document.getElementById('an-dam').value;
+  var editId = document.getElementById('an-edit-id').value;
+  var sel = document.getElementById('an-sire'); sel.innerHTML = '<option value="">-- none --</option>';
+  speciesDB(species).animals.filter(function(a){ return maleTypes(species).indexOf(a.type)>=0 && a.id!==editId; }).forEach(function(a){
+    var related = damId && isRelated(species, damId, a.id);
+    sel.innerHTML += '<option value="'+a.id+'"'+(related?' class="related-option"':'')+'>'+animalLabel(a)+(related?' ⚠ related — avoid':'')+'</option>';
+  });
+}
+function onAnimalDamOrSireChange() {
+  populateAnimalSireOptions();
+  var species = document.getElementById('an-species').value;
+  var damId = document.getElementById('an-dam').value;
+  var sireId = document.getElementById('an-sire').value;
+  var note = document.getElementById('an-sire-warning');
+  if(damId && sireId && isRelated(species, damId, sireId)) {
+    note.innerHTML = '<span style="color:#c0392b;font-weight:600">⚠ This pairing is closely related.</span>';
+  } else if(sireId) {
+    var s = findAnimal(species, sireId);
+    note.textContent = s && s.breed ? 'Breed: ' + s.breed : '';
+  } else note.textContent = '';
+}
+
+function openAnimalModal(species) {
+  document.getElementById('animal-modal-title').textContent = 'Add Animal';
+  document.getElementById('an-species').value = species;
+  document.getElementById('an-edit-id').value = '';
+  document.getElementById('an-edit-status').value = 'active';
+  ['an-tag','an-name','an-breed','an-birthweight','an-dob','an-acquired-date','an-acquired-weight','an-acquired-cost','an-dob-bought','an-birthweight-bought','an-ext-sire-id','an-ext-sire-breed','an-notes'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('an-acquired-date').value = todayISO();
+  setOriginMode('bornhere');
+  setAnimalSireMode('internal');
+  pendingPhotoData = null;
+  document.getElementById('an-photo-camera').value = '';
+  document.getElementById('an-photo-gallery').value = '';
+  document.getElementById('an-photo-preview').style.display = 'none';
+
+  var typeSel = document.getElementById('an-type');
+  typeSel.innerHTML = '';
+  typeOptionsFor(species).forEach(function(o){ typeSel.innerHTML += '<option value="'+o[0]+'">'+o[1]+'</option>'; });
+
+  var animals = speciesDB(species).animals;
+  var damSel = document.getElementById('an-dam'); damSel.innerHTML = '<option value="">-- none --</option>';
+  animals.forEach(function(a){
+    if(femaleTypes(species).indexOf(a.type) >= 0) damSel.innerHTML += '<option value="'+a.id+'">'+animalLabel(a)+'</option>';
+  });
+  populateAnimalSireOptions();
+  openModal('modal-animal');
+}
+
+function saveAnimal() {
+  var species = document.getElementById('an-species').value;
+  var tag = document.getElementById('an-tag').value.trim();
+  if(!tag){ alert('Tag/ID is required'); return; }
+  var editId = document.getElementById('an-edit-id').value;
+  var originMode = document.getElementById('an-species').getAttribute('data-origin-mode') || 'bornhere';
+  var sireMode = document.getElementById('an-species').getAttribute('data-an-sire-mode') || 'internal';
+
+  var dob, birthWeight, acquiredDate, acquiredWeight, acquiredCost;
+  if(originMode === 'bornhere') {
+    dob = document.getElementById('an-dob').value;
+    birthWeight = parseFloat(document.getElementById('an-birthweight').value) || null;
+    acquiredDate = dob || todayISO();
+    acquiredWeight = birthWeight;
+    acquiredCost = 0;
+  } else {
+    acquiredDate = document.getElementById('an-acquired-date').value;
+    if(!acquiredDate){ alert('Acquired date is required'); return; }
+    acquiredWeight = parseFloat(document.getElementById('an-acquired-weight').value) || null;
+    acquiredCost = parseFloat(document.getElementById('an-acquired-cost').value) || 0;
+    dob = document.getElementById('an-dob-bought').value;
+    birthWeight = parseFloat(document.getElementById('an-birthweight-bought').value) || null;
+  }
+
+  var sireId, extSireId='', extSireBreed='';
+  if(sireMode === 'internal') sireId = document.getElementById('an-sire').value || null;
+  else { sireId = 'external'; extSireId = document.getElementById('an-ext-sire-id').value.trim(); extSireBreed = document.getElementById('an-ext-sire-breed').value.trim(); }
+
+  function finalize(photoData){
+    var db = speciesDB(species);
+    var animal = {
+      id: editId || uid(),
+      tag: tag,
+      type: document.getElementById('an-type').value,
+      name: document.getElementById('an-name').value.trim(),
+      breed: document.getElementById('an-breed').value.trim(),
+      origin: originMode,
+      birthWeight: birthWeight,
+      dob: dob,
+      acquiredDate: acquiredDate,
+      acquiredWeight: acquiredWeight,
+      acquiredCost: acquiredCost,
+      status: editId ? (document.getElementById('an-edit-status').value || 'active') : 'active',
+      damId: document.getElementById('an-dam').value || null,
+      sireId: sireId,
+      externalSireId: extSireId,
+      externalSireBreed: extSireBreed,
+      notes: document.getElementById('an-notes').value.trim(),
+      photo: photoData
+    };
+    if(editId){
+      var idx = db.animals.findIndex(function(a){ return a.id===editId; });
+      if(idx>=0){ if(!photoData) animal.photo = db.animals[idx].photo; db.animals[idx] = animal; }
+    } else { db.animals.push(animal); }
+    save();
+    closeModal('modal-animal');
+    renderAnimals(species);
+  }
+  finalize(pendingPhotoData);
+}
+
+function editAnimal(species, id) {
+  var a = findAnimal(species, id);
+  if(!a) return;
+  closeModal('modal-animal-detail');
+  openAnimalModal(species);
+  document.getElementById('animal-modal-title').textContent = 'Edit Animal';
+  document.getElementById('an-edit-id').value = a.id;
+  document.getElementById('an-edit-status').value = a.status || 'active';
+  document.getElementById('an-tag').value = a.tag;
+  document.getElementById('an-type').value = a.type;
+  document.getElementById('an-name').value = a.name || '';
+  document.getElementById('an-breed').value = a.breed || '';
+  var originMode = a.origin || (a.acquiredCost ? 'bought' : 'bornhere');
+  setOriginMode(originMode);
+  if(originMode === 'bornhere') {
+    document.getElementById('an-dob').value = a.dob || '';
+    document.getElementById('an-birthweight').value = a.birthWeight || '';
+  } else {
+    document.getElementById('an-acquired-date').value = a.acquiredDate || '';
+    document.getElementById('an-acquired-weight').value = a.acquiredWeight || '';
+    document.getElementById('an-acquired-cost').value = a.acquiredCost || '';
+    document.getElementById('an-dob-bought').value = a.dob || '';
+    document.getElementById('an-birthweight-bought').value = a.birthWeight || '';
+  }
+  document.getElementById('an-dam').value = a.damId || '';
+  if(a.sireId === 'external') {
+    setAnimalSireMode('external');
+    document.getElementById('an-ext-sire-id').value = a.externalSireId || '';
+    document.getElementById('an-ext-sire-breed').value = a.externalSireBreed || '';
+  } else {
+    setAnimalSireMode('internal');
+    populateAnimalSireOptions();
+    document.getElementById('an-sire').value = a.sireId || '';
+  }
+  document.getElementById('an-notes').value = a.notes || '';
+  if(a.photo){ var img = document.getElementById('an-photo-preview'); img.src = a.photo; img.style.display='block'; }
+}
+
+function deleteAnimal(species, id) {
+  if(!confirm('Delete this animal? This cannot be undone.')) return;
+  var db = speciesDB(species);
+  db.animals = db.animals.filter(function(a){ return a.id !== id; });
+  save();
+  closeModal('modal-animal-detail');
+  renderAnimals(species);
+}
+
+function setAnimalView(species, view, btn) {
+  animalView[species] = view;
+  var parent = btn.parentNode;
+  parent.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderAnimals(species);
+}
+function filterAnimals(species, type, btn) {
+  animalFilter[species] = type;
+  var parent = btn.parentNode;
+  parent.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderAnimals(species);
+}
+function searchAnimals(species, val) { animalSearch[species] = val.toLowerCase(); renderAnimals(species); }
+
+function lastSaleFor(species, animalId) {
+  var db = speciesDB(species);
+  var sales = db.sales.filter(function(s){ return s.animalId===animalId && s.event==='Sale'; }).sort(function(a,b){ return b.date.localeCompare(a.date); });
+  return sales[0] || null;
+}
+
+function renderAnimals(species) {
+  var db = speciesDB(species);
+  var filter = animalFilter[species], search = animalSearch[species], view = animalView[species];
+  var list = db.animals.filter(function(a){
+    var mv = view==='active' ? a.status==='active' : a.status!=='active';
+    var mf = filter === 'all' || a.type === filter;
+    var ms = !search || (a.tag||'').toLowerCase().indexOf(search)>=0 || (a.name||'').toLowerCase().indexOf(search)>=0;
+    return mv && mf && ms;
+  });
+  var html = '';
+  if(list.length === 0) html = '<div class="empty-state">'+(view==='active' ? 'No animals found. Tap + Add to get started.' : 'No sold or deceased animals.')+'</div>';
+  else list.forEach(function(a){
+    var cardClass = a.type === 'cow' ? 'cow' : (a.type === 'bull' ? 'bull' : 'goat');
+    html += '<div class="animal-card '+cardClass+'" onclick="viewAnimal(\''+species+'\',\''+a.id+'\')">';
+    html += a.photo ? '<img class="animal-thumb" src="'+a.photo+'">' : '<div class="animal-thumb-placeholder">'+(species==='cattle'?'🐄':'🐐')+'</div>';
+    html += '<div style="flex:1"><span class="animal-tag tag-'+a.type+'">'+typeLabel(species,a.type)+'</span>';
+    html += '<div class="animal-name">'+a.tag+(a.name?' – '+a.name:'')+'</div>';
+    var meta = [];
+    if(a.breed) meta.push(a.breed);
+    if(view==='archived'){
+      if(a.status==='sold'){ var sale = lastSaleFor(species, a.id); meta.push('Sold'+(sale?' '+fmtMoney(sale.salePrice)+' on '+sale.date:'')); }
+      else if(a.status==='deceased') meta.push('Deceased'+(a.deceasedDate?' '+a.deceasedDate:''));
+    }
+    if(meta.length) html += '<div class="animal-meta">'+meta.join(' · ')+'</div>';
+    html += '</div></div>';
+  });
+  document.getElementById(species+'-animal-list').innerHTML = html;
+}
+
+function getAnimalWeightHistory(species, id) {
+  var db = speciesDB(species);
+  return db.sales.filter(function(s){ return s.animalId===id && s.weight; }).slice().sort(function(a,b){ return a.date.localeCompare(b.date); });
+}
+function getAnimalBreedingAsDam(species, id) {
+  var db = speciesDB(species);
+  return db.breeding.filter(function(b){ return b.damId===id; }).slice().sort(function(a,b){ return (b.breedingDate||'').localeCompare(a.breedingDate||''); });
+}
+function getAnimalBreedingAsSire(species, id) {
+  var db = speciesDB(species);
+  return db.breeding.filter(function(b){ return b.sireId===id; }).slice().sort(function(a,b){ return (b.breedingDate||'').localeCompare(a.breedingDate||''); });
+}
+
+function viewAnimal(species, id) {
+  var a = findAnimal(species, id);
+  if(!a) return;
+
+  var db = speciesDB(species);
+  var health = db.health.filter(function(h){ return h.animalId===id; }).slice().sort(function(x,y){ return y.date.localeCompare(x.date); });
+  var weightHist = getAnimalWeightHistory(species, id);
+  var html = '';
+  if(a.photo) html += '<img src="'+a.photo+'" style="width:100%;border-radius:10px;margin-bottom:12px;max-height:200px;object-fit:cover">';
+  html += '<span class="animal-tag tag-'+a.type+'">'+typeLabel(species,a.type)+'</span> ';
+  if(a.status==='sold') html += '<span class="badge badge-orange">Sold</span>';
+  else if(a.status==='deceased') html += '<span class="badge badge-gray">Deceased</span>';
+  html += '<div style="font-size:18px;font-weight:700;margin:4px 0">'+a.tag+(a.name?' – '+a.name:'')+'</div>';
+  if(a.breed) html += '<div style="color:#666;font-size:13px">Breed: '+a.breed+'</div>';
+  if(a.origin==='bought') {
+    if(a.acquiredDate) html += '<div style="color:#666;font-size:13px">Acquired: '+a.acquiredDate+(a.acquiredWeight?' at '+a.acquiredWeight+' kg':'')+'</div>';
+    if(a.acquiredCost) html += '<div style="color:#666;font-size:13px">Cost: '+fmtMoney(a.acquiredCost)+'</div>';
+    if(a.dob) html += '<div style="color:#666;font-size:13px">DOB (if known): '+a.dob+(a.birthWeight?' · '+a.birthWeight+' kg':'')+'</div>';
+  } else {
+    if(a.dob) html += '<div style="color:#666;font-size:13px">Born on farm: '+a.dob+'</div>';
+    if(a.birthWeight) html += '<div style="color:#666;font-size:13px">Birth weight: '+a.birthWeight+' kg</div>';
+  }
+  if(a.damId){ var dam = findAnimal(species,a.damId); if(dam) html += '<div style="color:#666;font-size:13px">Mother: '+animalLabel(dam)+'</div>'; }
+  if(a.sireId){
+    var sireText = a.sireId==='external' ? ('AI — '+(a.externalSireId||'unknown ID')+(a.externalSireBreed?' ('+a.externalSireBreed+')':'')) : (function(){ var s=findAnimal(species,a.sireId); return s?animalLabel(s):'—'; })();
+    html += '<div style="color:#666;font-size:13px">Father: '+sireText+'</div>';
+  }
+  if(a.status==='sold'){ var sale = lastSaleFor(species, id); if(sale) html += '<div style="color:#2d6a2d;font-size:13px;font-weight:600">Sold '+fmtMoney(sale.salePrice)+' on '+sale.date+(sale.buyer?' to '+sale.buyer:'')+'</div>'; }
+  if(a.status==='deceased' && a.deceasedDate) html += '<div style="color:#666;font-size:13px">Deceased on: '+a.deceasedDate+'</div>';
+  if(a.notes) html += '<div style="color:#555;font-size:13px;margin-top:6px;background:#f5f5f5;padding:8px;border-radius:6px">'+a.notes+'</div>';
+
+  // ---- Weight & growth ----
+  html += '<div style="font-weight:700;font-size:13px;color:#2d6a2d;margin:14px 0 6px;border-top:1px solid #eee;padding-top:10px">⚖️ Weight & Growth</div>';
+  var baseW = a.birthWeight || a.acquiredWeight || (weightHist[0] ? weightHist[0].weight : null);
+  var lastW = weightHist.length ? weightHist[weightHist.length-1] : null;
+  var curW = lastW ? lastW.weight : baseW;
+  if(curW==null) html += '<div style="font-size:12px;color:#888">No weight recorded yet. Add one under Weight & Sales.</div>';
+  else {
+    var gain = (curW!=null && baseW!=null) ? (curW-baseW) : null;
+    var gpd = null;
+    if(weightHist.length>=2){ var p=weightHist[weightHist.length-2]; var days=Math.max(1,daysBetween(p.date,lastW.date)); gpd=(lastW.weight-p.weight)/days; }
+    html += '<div class="stat-row" style="margin-bottom:8px">';
+    html += '<div class="stat-box" style="padding:8px"><div class="stat-num" style="font-size:16px">'+curW.toFixed(1)+'</div><div class="stat-label">Current (kg)</div></div>';
+    html += '<div class="stat-box" style="padding:8px"><div class="stat-num" style="font-size:16px">'+(gain!=null?gain.toFixed(1):'—')+'</div><div class="stat-label">Gained (kg)</div></div>';
+    html += '<div class="stat-box" style="padding:8px"><div class="stat-num" style="font-size:16px">'+(gpd!=null?gpd.toFixed(2):'—')+'</div><div class="stat-label">Gain/day</div></div>';
+    html += '</div>';
+    if(weightHist.length){
+      html += '<table class="datatable" style="margin-bottom:6px"><tr><th>Date</th><th>Weight</th><th>Event</th></tr>';
+      weightHist.slice().reverse().forEach(function(w){ html += '<tr><td>'+w.date+'</td><td>'+w.weight+' kg</td><td>'+w.event+(w.event==='Sale'?' '+fmtMoney(w.salePrice):'')+'</td></tr>'; });
+      html += '</table>';
+    }
+  }
+
+  // ---- Milking status (cows only) ----
+  if(species==='cattle' && a.type==='cow') {
+    var milkRow = buildMilkingList().filter(function(r){ return r.damId===id; })[0];
+    html += '<div style="font-weight:700;font-size:13px;color:#2d6a2d;margin:14px 0 6px;border-top:1px solid #eee;padding-top:10px">🥛 Milking Status</div>';
+    if(!milkRow) html += '<div style="font-size:12px;color:#888">Not currently lactating (no confirmed calving on record).</div>';
+    else {
+      html += '<div style="font-size:12px">Calved: '+milkRow.start+' · Days in milk: <b>'+milkRow.daysInMilk+'</b></div>';
+      if(milkRow.dryOff) html += '<div style="font-size:12px">Dry-off date: <b>'+milkRow.dryOff+'</b></div>';
+      else html += '<div style="font-size:12px;color:#888">Not yet rebred — dry-off date unknown</div>';
+    }
+    var myMilk = DB.cattle.milk.filter(function(m){ return m.animalId===id; });
+    if(myMilk.length){
+      var totalL = myMilk.reduce(function(s,m){ return s+(m.morning||0)+(m.evening||0); },0);
+      var totalEarning = computeCowLifetimeEarning(id);
+      html += '<div style="font-size:12px;margin-top:4px">Total produced: '+totalL.toFixed(1)+' L · Estimated earning (her share of pooled sales): '+fmtMoney(totalEarning)+'</div>';
+    }
+  }
+
+  // ---- Breeding history ----
+  var asDam = getAnimalBreedingAsDam(species, id);
+  var asSire = getAnimalBreedingAsSire(species, id);
+  if(asDam.length || asSire.length) {
+    html += '<div style="font-weight:700;font-size:13px;color:#2d6a2d;margin:14px 0 6px;border-top:1px solid #eee;padding-top:10px">🍼 Breeding History</div>';
+    asDam.forEach(function(b){
+      var sireTxt = b.sireId==='external' ? (b.externalSireId||'External') : (function(){ var s=findAnimal(species,b.sireId); return s?animalLabel(s):'—'; })();
+      html += '<div style="font-size:12px;margin-bottom:3px">As mother × '+sireTxt+' — bred '+(b.breedingDate||'—')+(b.actualBirthDate?' · born '+b.actualBirthDate:' · due '+(b.expectedDueDate||'—'))+'</div>';
+    });
+    asSire.forEach(function(b){
+      var dam = findAnimal(species,b.damId);
+      html += '<div style="font-size:12px;margin-bottom:3px">As father × '+(dam?animalLabel(dam):'—')+' — bred '+(b.breedingDate||'—')+(b.actualBirthDate?' · born '+b.actualBirthDate:' · due '+(b.expectedDueDate||'—'))+'</div>';
+    });
+  }
+
+  // ---- Health history ----
+  html += '<div style="font-weight:700;font-size:13px;color:#2d6a2d;margin:14px 0 6px;border-top:1px solid #eee;padding-top:10px">🩺 Health History ('+health.length+')</div>';
+  if(health.length===0) html += '<div style="font-size:12px;color:#888">No health records yet.</div>';
+  else health.forEach(function(h){
+    html += '<div style="font-size:12px;margin-bottom:3px">'+h.date+' · '+h.type+(h.description?' – '+h.description:'')+(h.cost?' · '+fmtMoney(h.cost):'')+(h.nextDate?' · next: '+h.nextDate:'')+'</div>';
+  });
+
+  var cb = computeAnimalCostBreakdown(species, a);
+  html += '<div style="font-weight:700;font-size:13px;color:#2d6a2d;margin:14px 0 6px;border-top:1px solid #eee;padding-top:10px">💵 Cost &amp; Profitability</div>';
+  html += '<div style="font-size:12px;line-height:1.6">';
+  html += 'Acquisition: '+fmtMoney(cb.acquisition)+'<br>';
+  html += 'Direct health costs: '+fmtMoney(cb.directHealth)+'<br>';
+  html += 'Direct feed/expenses (assigned to her): '+fmtMoney(cb.directFeed)+'<br>';
+  html += 'Feed share (her portion of shared pool): '+fmtMoney(cb.feedShare)+'<br>';
+  html += '<b>Total cost — feed &amp; health only: '+fmtMoney(cb.costExcl)+'</b><br>';
+  html += 'Labour &amp; overhead share: '+fmtMoney(cb.labourOhShare)+'<br>';
+  html += '<b>Total cost — including labour &amp; overhead: '+fmtMoney(cb.costIncl)+'</b>';
+  html += '</div>';
+  if(cb.salePrice!=null) {
+    var cExcl = cb.profitExcl>=0 ? '#1e8449' : '#c0392b';
+    var cIncl = cb.profitIncl>=0 ? '#1e8449' : '#c0392b';
+    html += '<div style="font-size:12px;margin-top:8px;background:#f5f5f5;padding:8px;border-radius:6px">';
+    html += 'Sold for '+fmtMoney(cb.salePrice)+'<br>';
+    html += 'Profit/Loss (feed &amp; health only): <b style="color:'+cExcl+'">'+(cb.profitExcl>=0?'+':'')+fmtMoney(cb.profitExcl)+'</b><br>';
+    html += 'Profit/Loss (incl. labour &amp; overhead): <b style="color:'+cIncl+'">'+(cb.profitIncl>=0?'+':'')+fmtMoney(cb.profitIncl)+'</b>';
+    html += '</div>';
+  }
+
+  html += '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">';
+  html += '<button class="btn btn-sm btn-blue" style="flex:1" onclick="editAnimal(\''+species+'\',\''+id+'\')">✏️ Edit</button>';
+  if(a.status==='active') {
+    html += '<button class="btn btn-sm btn-orange" style="flex:1" onclick="sellAnimal(\''+species+'\',\''+id+'\')">💰 Sell</button>';
+    html += '<button class="btn btn-sm btn-gray" style="flex:1" onclick="markDeceased(\''+species+'\',\''+id+'\')">⚰️ Deceased</button>';
+  } else {
+    html += '<button class="btn btn-sm btn-green" style="flex:1" onclick="reactivateAnimal(\''+species+'\',\''+id+'\')">↩️ Reactivate</button>';
+  }
+  html += '<button class="btn btn-sm btn-red" style="flex:1" onclick="deleteAnimal(\''+species+'\',\''+id+'\')">🗑️ Delete</button>';
+  html += '</div>';
+  document.getElementById('detail-title').textContent = a.tag;
+  document.getElementById('detail-body').innerHTML = html;
+  openModal('modal-animal-detail');
+}
+
+
+function sellAnimal(species, id) {
+  closeModal('modal-animal-detail');
+  openSaleModal(species, id, 'Sale');
+}
+function markDeceased(species, id) {
+  var date = prompt('Date of death (YYYY-MM-DD):', todayISO());
+  if(date === null) return;
+  var db = speciesDB(species);
+  var a = db.animals.find(function(x){ return x.id===id; });
+  if(!a) return;
+  a.status = 'deceased'; a.deceasedDate = date || todayISO();
+  save(); closeModal('modal-animal-detail'); renderAnimals(species);
+}
+function reactivateAnimal(species, id) {
+  if(!confirm('Move this animal back to the active list?')) return;
+  var db = speciesDB(species);
+  var a = db.animals.find(function(x){ return x.id===id; });
+  if(!a) return;
+  a.status = 'active';
+  save(); closeModal('modal-animal-detail'); renderAnimals(species);
+}
+
+// ================= HEALTH =================
+function openHealthModal(species) {
+  document.getElementById('he-species').value = species;
+  var sel = document.getElementById('he-animal'); sel.innerHTML = '';
+  speciesDB(species).animals.filter(function(a){ return a.status==='active'; }).forEach(function(a){ sel.innerHTML += '<option value="'+a.id+'">'+animalLabel(a)+'</option>'; });
+  document.getElementById('he-date').value = todayISO();
+  document.getElementById('he-desc').value = ''; document.getElementById('he-cost').value=''; document.getElementById('he-next').value='';
+  openModal('modal-health');
+}
+function saveHealth() {
+  var species = document.getElementById('he-species').value;
+  var animalId = document.getElementById('he-animal').value;
+  var date = document.getElementById('he-date').value;
+  if(!animalId || !date){ alert('Animal and date are required'); return; }
+  speciesDB(species).health.push({
+    id: uid(), animalId: animalId, type: document.getElementById('he-type').value, date: date,
+    description: document.getElementById('he-desc').value.trim(), cost: parseFloat(document.getElementById('he-cost').value)||0,
+    nextDate: document.getElementById('he-next').value
+  });
+  save(); closeModal('modal-health'); renderHealth(species);
+}
+function deleteHealth(species, id) {
+  if(!confirm('Delete this record?')) return;
+  var db = speciesDB(species);
+  db.health = db.health.filter(function(h){ return h.id!==id; });
+  save(); renderHealth(species);
+}
+function renderHealth(species) {
+  var db = speciesDB(species);
+  var sorted = db.health.slice().sort(function(a,b){ return b.date.localeCompare(a.date); });
+  var html = '';
+  if(sorted.length===0) html = '<div class="empty-state">No health records yet.</div>';
+  else sorted.forEach(function(h){
+    var a = findAnimal(species, h.animalId);
+    html += '<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start">';
+    html += '<div><div style="font-weight:700;font-size:14px">'+h.type+'</div>';
+    html += '<div style="font-size:13px;color:#2d6a2d;font-weight:600">'+(a?animalLabel(a):'—')+'</div>';
+    if(h.description) html += '<div style="font-size:12px;color:#555">'+h.description+'</div>';
+    html += '<div style="font-size:11px;color:#999;margin-top:3px">'+h.date+(h.nextDate?' · Next: <span style="color:#d35400">'+h.nextDate+'</span>':'')+'</div></div>';
+    html += '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">';
+    if(h.cost) html += '<span style="font-weight:700;color:#c0392b;font-size:13px">'+fmtMoney(h.cost)+'</span>';
+    html += '<button class="btn btn-sm btn-red" onclick="deleteHealth(\''+species+'\',\''+h.id+'\')">🗑️</button></div></div></div>';
+  });
+  document.getElementById(species+'-health-list').innerHTML = html;
+}
+
+// ================= LINEAGE / RELATEDNESS =================
+function getAncestorSet(species, id, depth) {
+  var set = {}; var frontier = [id]; var animals = speciesDB(species).animals;
+  for(var d=0; d<depth; d++){
+    var next = [];
+    frontier.forEach(function(fid){
+      var a = null;
+      for(var i=0;i<animals.length;i++) if(animals[i].id===fid) a = animals[i];
+      if(a){
+        if(a.damId && a.damId!=='external'){ set[a.damId]=true; next.push(a.damId); }
+        if(a.sireId && a.sireId!=='external'){ set[a.sireId]=true; next.push(a.sireId); }
+      }
+    });
+    frontier = next;
+  }
+  return set;
+}
+function getSiblingSet(species, id) {
+  var animals = speciesDB(species).animals;
+  var a = null; for(var i=0;i<animals.length;i++) if(animals[i].id===id) a=animals[i];
+  var set = {};
+  if(!a) return set;
+  animals.forEach(function(o){
+    if(o.id===id) return;
+    if((a.damId && a.damId!=='external' && o.damId===a.damId) || (a.sireId && a.sireId!=='external' && o.sireId===a.sireId)) set[o.id]=true;
+  });
+  return set;
+}
+function isRelated(species, damId, sireId) {
+  if(!damId || !sireId || sireId==='external') return false;
+  var damAnc = getAncestorSet(species, damId, 3);
+  var sireAnc = getAncestorSet(species, sireId, 3);
+  if(damAnc[sireId]) return true;
+  if(sireAnc[damId]) return true;
+  if(getSiblingSet(species, damId)[sireId]) return true;
+  var dam = findAnimal(species, damId), sire = findAnimal(species, sireId);
+  var damParents = [dam && dam.damId, dam && dam.sireId].filter(function(p){ return p && p!=='external'; });
+  for(var i=0;i<damParents.length;i++) if(getSiblingSet(species, damParents[i])[sireId]) return true;
+  var sireParents = [sire && sire.damId, sire && sire.sireId].filter(function(p){ return p && p!=='external'; });
+  for(var j=0;j<sireParents.length;j++) if(getSiblingSet(species, sireParents[j])[damId]) return true;
+  return false;
+}
+
+// ================= BREEDING =================
+function openBreedingModal(species) {
+  document.getElementById('br-species').value = species;
+  var db = speciesDB(species);
+  var damSel = document.getElementById('br-dam'); damSel.innerHTML = '<option value="">Select…</option>';
+  db.animals.filter(function(a){ return femaleTypes(species).indexOf(a.type)>=0; }).forEach(function(a){
+    damSel.innerHTML += '<option value="'+a.id+'">'+animalLabel(a)+'</option>';
+  });
+  setSireMode('internal');
+  document.getElementById('br-ext-sire-id').value=''; document.getElementById('br-ext-sire-breed').value='';
+  document.getElementById('br-date').value = todayISO();
+  document.getElementById('br-notes').value = '';
+  updateDueDate();
+  onDamChange();
+  openModal('modal-breeding');
+}
+function setSireMode(mode) {
+  document.getElementById('sire-mode-internal').classList.toggle('active', mode==='internal');
+  document.getElementById('sire-mode-external').classList.toggle('active', mode==='external');
+  document.getElementById('sire-internal-block').style.display = mode==='internal' ? 'block' : 'none';
+  document.getElementById('sire-external-block').style.display = mode==='external' ? 'grid' : 'none';
+  document.getElementById('br-species').setAttribute('data-sire-mode', mode);
+}
+function onDamChange() { populateSireOptions(); checkRelatedWarning(); }
+function onSireChange() { checkRelatedWarning(); }
+function populateSireOptions() {
+  var species = document.getElementById('br-species').value;
+  var damId = document.getElementById('br-dam').value;
+  var sireSel = document.getElementById('br-sire'); sireSel.innerHTML = '<option value="">Select…</option>';
+  speciesDB(species).animals.filter(function(a){ return maleTypes(species).indexOf(a.type)>=0; }).forEach(function(a){
+    var related = damId && isRelated(species, damId, a.id);
+    sireSel.innerHTML += '<option value="'+a.id+'"'+(related?' class="related-option"':'')+'>'+animalLabel(a)+(related?' ⚠ related — avoid':'')+'</option>';
+  });
+}
+function checkRelatedWarning() {
+  var species = document.getElementById('br-species').value;
+  var damId = document.getElementById('br-dam').value;
+  var sireId = document.getElementById('br-sire').value;
+  var note = document.getElementById('sire-warning');
+  if(damId && sireId && isRelated(species, damId, sireId)) {
+    note.innerHTML = '<span style="color:#c0392b;font-weight:600">⚠ This pairing is closely related. Choose a different sire to keep the bloodline healthy.</span>';
+  } else if(sireId) {
+    var s = findAnimal(species, sireId);
+    note.textContent = s && s.breed ? 'Breed: ' + s.breed : '';
+  } else note.textContent = '';
+}
+function updateDueDate() {
+  var species = document.getElementById('br-species').value || 'cattle';
+  var bd = document.getElementById('br-date').value;
+  if(!bd) return;
+  var d = new Date(bd + 'T00:00:00');
+  d.setDate(d.getDate() + gestationDays(species));
+  document.getElementById('br-due').value = d.toISOString().split('T')[0];
+  document.getElementById('br-due-note').textContent = 'Auto-set at ' + gestationDays(species) + ' days — ±10 days is normal';
+}
+function saveBreeding() {
+  var species = document.getElementById('br-species').value;
+  var mode = document.getElementById('br-species').getAttribute('data-sire-mode') || 'internal';
+  var damId = document.getElementById('br-dam').value;
+  if(!damId){ alert('Select a dam'); return; }
+  var record = {
+    id: uid(), damId: damId,
+    sireId: mode==='internal' ? document.getElementById('br-sire').value : 'external',
+    externalSireId: mode==='external' ? document.getElementById('br-ext-sire-id').value.trim() : '',
+    externalSireBreed: mode==='external' ? document.getElementById('br-ext-sire-breed').value.trim() : '',
+    breedingDate: document.getElementById('br-date').value,
+    expectedDueDate: document.getElementById('br-due').value,
+    notes: document.getElementById('br-notes').value.trim(),
+    actualBirthDate: '', birthWeight: '', offspringCount: 0
+  };
+  if(mode==='internal' && !record.sireId){ alert('Select a sire'); return; }
+  if(mode==='external' && !record.externalSireId){ alert('Enter external sire ID'); return; }
+  speciesDB(species).breeding.push(record);
+  save(); closeModal('modal-breeding'); renderBreeding(species);
+}
+function deleteBreeding(species, id) {
+  if(!confirm('Delete this breeding record?')) return;
+  var db = speciesDB(species);
+  db.breeding = db.breeding.filter(function(b){ return b.id!==id; });
+  save(); renderBreeding(species);
+}
+function breedingGroups(species) {
+  var db = speciesDB(species);
+  var byDam = {};
+  db.breeding.forEach(function(b){ (byDam[b.damId] = byDam[b.damId]||[]).push(b); });
+  var superseded = {}; var activeByDam = {};
+  Object.keys(byDam).forEach(function(dId){
+    var list = byDam[dId].slice().sort(function(a,b){ return new Date(a.breedingDate||0) - new Date(b.breedingDate||0); });
+    list.forEach(function(rec, idx){ if(idx < list.length-1 && !rec.actualBirthDate) superseded[rec.id]=true; });
+    activeByDam[dId] = list[list.length-1] ? list[list.length-1].id : null;
+  });
+  return { superseded: superseded, activeByDam: activeByDam };
+}
+function renderBreeding(species) {
+  var db = speciesDB(species);
+  var groups = breedingGroups(species);
+  var sorted = db.breeding.slice().sort(function(a,b){ return (b.breedingDate||'').localeCompare(a.breedingDate||''); });
+  var html = '';
+  if(sorted.length===0) html = '<div class="empty-state">No breeding records yet.</div>';
+  else sorted.forEach(function(r){
+    var dam = findAnimal(species, r.damId);
+    var sireLabel = r.sireId==='external' ? (r.externalSireId||'External')+(r.externalSireBreed?' ('+r.externalSireBreed+')':'') : (findAnimal(species,r.sireId) ? animalLabel(findAnimal(species,r.sireId)) : '—');
+    var dimmed = groups.superseded[r.id];
+    var canConfirm = groups.activeByDam[r.damId] === r.id && !r.actualBirthDate;
+    html += '<div class="card" style="'+(dimmed?'opacity:0.45;text-decoration:line-through':'')+'">';
+    html += '<div style="font-weight:700;font-size:13px">'+(dam?animalLabel(dam):'—')+' × '+sireLabel+'</div>';
+    html += '<div style="font-size:12px;color:#666">Bred: '+ (r.breedingDate||'—') + ' · Due: ' + (r.expectedDueDate||'—') + '</div>';
+    if(r.actualBirthDate) html += '<div style="font-size:12px;color:#2d6a2d">Born: '+r.actualBirthDate+(r.birthWeight?' · '+r.birthWeight+' kg':'')+'</div>';
+    html += '<div style="display:flex;gap:8px;margin-top:8px">';
+    if(canConfirm) html += '<button class="btn btn-sm btn-green" onclick="openConfirmBirth(\''+species+'\',\''+r.id+'\')">Confirm birth</button>';
+    html += '<button class="btn btn-sm btn-red" onclick="deleteBreeding(\''+species+'\',\''+r.id+'\')">🗑️</button>';
+    html += '</div></div>';
+  });
+  document.getElementById(species+'-breeding-list').innerHTML = html;
+}
+
+// ================= CONFIRM BIRTH =================
+function openConfirmBirth(species, breedingId) {
+  document.getElementById('cb-species').value = species;
+  document.getElementById('cb-breeding-id').value = breedingId;
+  document.getElementById('cb-title').textContent = species==='cattle' ? 'Confirm Calving' : 'Confirm Kidding';
+  document.getElementById('cb-date').value = todayISO();
+  document.getElementById('cb-weight').value = '';
+  document.getElementById('cb-sex').value = 'Female';
+  document.getElementById('cb-tag').value = ''; document.getElementById('cb-name').value = '';
+  var breeding = speciesDB(species).breeding.find(function(b){ return b.id===breedingId; });
+  var dam = breeding ? findAnimal(species, breeding.damId) : null;
+  document.getElementById('cb-breed').value = dam && dam.breed ? dam.breed : '';
+  openModal('modal-confirm-birth');
+}
+function confirmBirth() {
+  var species = document.getElementById('cb-species').value;
+  var breedingId = document.getElementById('cb-breeding-id').value;
+  var tag = document.getElementById('cb-tag').value.trim();
+  var date = document.getElementById('cb-date').value;
+  if(!tag || !date){ alert('Tag and birth date are required'); return; }
+  var db = speciesDB(species);
+  var breeding = db.breeding.find(function(b){ return b.id===breedingId; });
+  if(!breeding) return;
+  var sex = document.getElementById('cb-sex').value;
+  var weight = parseFloat(document.getElementById('cb-weight').value) || null;
+  var newAnimal = {
+    id: uid(), tag: tag, name: document.getElementById('cb-name').value.trim(),
+    type: sex==='Male' ? maleTypes(species)[0] : femaleTypes(species)[0],
+    breed: document.getElementById('cb-breed').value.trim(),
+    origin: 'bornhere', birthWeight: weight, dob: date, acquiredDate: date, acquiredWeight: weight, acquiredCost: 0, status: 'active',
+    damId: breeding.damId, sireId: breeding.sireId, notes: ''
+  };
+  db.animals.push(newAnimal);
+  breeding.actualBirthDate = date; breeding.birthWeight = weight; breeding.offspringCount = (breeding.offspringCount||0)+1;
+  save(); closeModal('modal-confirm-birth'); renderBreeding(species); renderAnimals(species);
+}
+
+// ================= MILK (cattle only) =================
+function openMilkModal() {
+  var sel = document.getElementById('mi-animal'); sel.innerHTML = '';
+  DB.cattle.animals.filter(function(a){ return a.type==='cow' && a.status==='active'; }).forEach(function(a){ sel.innerHTML += '<option value="'+a.id+'">'+animalLabel(a)+'</option>'; });
+  document.getElementById('mi-date').value = todayISO();
+  ['mi-morning','mi-evening'].forEach(function(id){ document.getElementById(id).value=''; });
+  openModal('modal-milk');
+}
+function saveMilk() {
+  var animalId = document.getElementById('mi-animal').value;
+  var date = document.getElementById('mi-date').value;
+  if(!animalId || !date){ alert('Cow and date required'); return; }
+  DB.cattle.milk.push({
+    id: uid(), animalId: animalId, date: date,
+    morning: parseFloat(document.getElementById('mi-morning').value)||0,
+    evening: parseFloat(document.getElementById('mi-evening').value)||0
+  });
+  save(); closeModal('modal-milk'); renderMilk();
+}
+function deleteMilk(id) {
+  if(!confirm('Delete this record?')) return;
+  DB.cattle.milk = DB.cattle.milk.filter(function(m){ return m.id!==id; });
+  save(); renderMilk();
+}
+function renderMilk() {
+  var sorted = DB.cattle.milk.slice().sort(function(a,b){ return b.date.localeCompare(a.date); });
+  var html = '';
+  if(sorted.length===0) html = '<div class="empty-state">No milk production logged yet.</div>';
+  else sorted.forEach(function(m){
+    var a = findAnimal('cattle', m.animalId);
+    var total = (m.morning||0)+(m.evening||0);
+    html += '<div class="card"><div style="display:flex;justify-content:space-between"><div>';
+    html += '<div style="font-weight:700;font-size:13px">'+(a?animalLabel(a):'—')+'</div>';
+    html += '<div style="font-size:12px;color:#666">'+m.date+' · Morning '+(m.morning||0)+'L + Evening '+(m.evening||0)+'L = <b>'+total.toFixed(1)+'L</b></div></div>';
+    html += '<button class="btn btn-sm btn-red" onclick="deleteMilk(\''+m.id+'\')">🗑️</button></div></div>';
+  });
+  document.getElementById('cattle-milk-list').innerHTML = html;
+  renderMilkSales();
+  renderMilkReport();
+}
+
+// ---- Pooled milk sales (farm-wide, not per cow) ----
+function openMilkSaleModal() {
+  document.getElementById('ms-date').value = todayISO();
+  document.getElementById('ms-liters').value = ''; document.getElementById('ms-amount').value = '';
+  document.getElementById('ms-rate-preview').textContent = 'Rate will be calculated automatically.';
+  openModal('modal-milksale');
+}
+function updateMsRatePreview() {
+  var l = parseFloat(document.getElementById('ms-liters').value) || 0;
+  var amt = parseFloat(document.getElementById('ms-amount').value) || 0;
+  var el = document.getElementById('ms-rate-preview');
+  el.textContent = (l>0) ? ('Rate: ৳' + (amt/l).toFixed(2) + ' per liter') : 'Rate will be calculated automatically.';
+}
+function saveMilkSale() {
+  var date = document.getElementById('ms-date').value;
+  var liters = parseFloat(document.getElementById('ms-liters').value) || 0;
+  var amount = parseFloat(document.getElementById('ms-amount').value) || 0;
+  if(!date || liters<=0 || amount<=0){ alert('Date, liters sold, and amount received are all required'); return; }
+  DB.cattle.milkSales.push({ id: uid(), date: date, liters: liters, amount: amount });
+  save(); closeModal('modal-milksale'); renderMilk();
+}
+function deleteMilkSale(id) {
+  if(!confirm('Delete this sale record?')) return;
+  DB.cattle.milkSales = DB.cattle.milkSales.filter(function(s){ return s.id!==id; });
+  save(); renderMilk();
+}
+function renderMilkSales() {
+  var sorted = DB.cattle.milkSales.slice().sort(function(a,b){ return b.date.localeCompare(a.date); });
+  var html = '';
+  if(sorted.length===0) html = '<div class="empty-state">No milk sales logged yet.</div>';
+  else sorted.forEach(function(s){
+    var rate = s.liters>0 ? (s.amount/s.liters) : 0;
+    html += '<div class="card"><div class="expense-row"><div>';
+    html += '<div style="font-weight:700;font-size:13px">'+s.date+'</div>';
+    html += '<div style="font-size:12px;color:#666">'+s.liters+'L sold · Rate ৳'+rate.toFixed(2)+'/L</div></div>';
+    html += '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">';
+    html += '<span style="font-weight:700;color:#2d6a2d;font-size:13px">'+fmtMoney(s.amount)+'</span>';
+    html += '<button class="btn btn-sm btn-red" onclick="deleteMilkSale(\''+s.id+'\')">🗑️</button></div></div></div>';
+  });
+  document.getElementById('cattle-milksale-list').innerHTML = html;
+}
+
+// ---- Monthly report: daily rate table + per-cow proportional earning ----
+function computeCowLifetimeEarning(animalId) {
+  var dailyProd = {}, dailyProdByCow = {};
+  DB.cattle.milk.forEach(function(m){
+    var total = (m.morning||0)+(m.evening||0);
+    dailyProd[m.date] = (dailyProd[m.date]||0) + total;
+    dailyProdByCow[m.date] = dailyProdByCow[m.date] || {};
+    dailyProdByCow[m.date][m.animalId] = (dailyProdByCow[m.date][m.animalId]||0) + total;
+  });
+  var earning = 0;
+  DB.cattle.milkSales.forEach(function(s){
+    var dayTotal = dailyProd[s.date] || 0;
+    if(dayTotal<=0) return;
+    var byCow = dailyProdByCow[s.date] || {};
+    var myShare = (byCow[animalId] || 0) / dayTotal;
+    earning += myShare * s.amount;
+  });
+  return earning;
+}
+function renderMilkReport() {
+  var monthInput = document.getElementById('milk-report-month');
+  if(!monthInput) return;
+  if(!monthInput.value) monthInput.value = todayISO().slice(0,7);
+  var month = monthInput.value;
+
+  // Total production per day (all cows) and per cow, within this month
+  var dailyProd = {};      // date -> total liters that day
+  var dailyProdByCow = {}; // date -> { animalId: liters }
+  DB.cattle.milk.forEach(function(m){
+    if(m.date.slice(0,7) !== month) return;
+    var total = (m.morning||0)+(m.evening||0);
+    dailyProd[m.date] = (dailyProd[m.date]||0) + total;
+    dailyProdByCow[m.date] = dailyProdByCow[m.date] || {};
+    dailyProdByCow[m.date][m.animalId] = (dailyProdByCow[m.date][m.animalId]||0) + total;
+  });
+  var salesInMonth = DB.cattle.milkSales.filter(function(s){ return s.date.slice(0,7)===month; }).sort(function(a,b){ return a.date.localeCompare(b.date); });
+
+  // Per-day table
+  var tableHtml = '';
+  var totalSoldMonth = 0, totalAmountMonth = 0, totalProducedMonth = 0;
+  Object.keys(dailyProd).forEach(function(d){ totalProducedMonth += dailyProd[d]; });
+  if(salesInMonth.length===0) {
+    tableHtml = '<div class="empty-state">No milk sales logged for this month yet.</div>';
+  } else {
+    tableHtml = '<table class="datatable"><tr><th>Date</th><th>Produced</th><th>Sold</th><th>Amount</th><th>Rate/L</th></tr>';
+    salesInMonth.forEach(function(s){
+      var rate = s.liters>0 ? (s.amount/s.liters) : 0;
+      totalSoldMonth += s.liters; totalAmountMonth += s.amount;
+      tableHtml += '<tr><td>'+s.date+'</td><td>'+(dailyProd[s.date]?dailyProd[s.date].toFixed(1):'—')+'L</td><td>'+s.liters+'L</td><td>'+fmtMoney(s.amount)+'</td><td>৳'+rate.toFixed(2)+'</td></tr>';
+    });
+    var avgRate = totalSoldMonth>0 ? (totalAmountMonth/totalSoldMonth) : 0;
+    tableHtml += '<tr style="font-weight:700;background:#f7f4ec"><td>Total</td><td>'+totalProducedMonth.toFixed(1)+'L</td><td>'+totalSoldMonth.toFixed(1)+'L</td><td>'+fmtMoney(totalAmountMonth)+'</td><td>৳'+avgRate.toFixed(2)+' avg</td></tr>';
+    tableHtml += '</table>';
+  }
+
+  // Per-cow monthly breakdown: allocate each day's sale amount proportionally by that cow's share of that day's total production
+  var cowTotals = {}; // animalId -> { produced, earning }
+  salesInMonth.forEach(function(s){
+    var dayTotal = dailyProd[s.date] || 0;
+    if(dayTotal<=0) return;
+    var byCow = dailyProdByCow[s.date] || {};
+    Object.keys(byCow).forEach(function(animalId){
+      var share = byCow[animalId] / dayTotal;
+      cowTotals[animalId] = cowTotals[animalId] || { produced: 0, earning: 0 };
+      cowTotals[animalId].earning += share * s.amount;
+    });
+  });
+  Object.keys(dailyProdByCow).forEach(function(d){
+    Object.keys(dailyProdByCow[d]).forEach(function(animalId){
+      cowTotals[animalId] = cowTotals[animalId] || { produced: 0, earning: 0 };
+      cowTotals[animalId].produced += dailyProdByCow[d][animalId];
+    });
+  });
+  var cowHtml = '';
+  var cowIds = Object.keys(cowTotals);
+  if(cowIds.length>0) {
+    cowHtml = '<h3 style="font-size:13px;margin:14px 0 8px;color:#2d6a2d">Per-cow breakdown this month</h3><table class="datatable"><tr><th>Cow</th><th>Produced</th><th>Est. earning</th></tr>';
+    cowIds.sort(function(x,y){ return cowTotals[y].produced - cowTotals[x].produced; }).forEach(function(id){
+      var a = findAnimal('cattle', id);
+      cowHtml += '<tr><td>'+(a?animalLabel(a):'—')+'</td><td>'+cowTotals[id].produced.toFixed(1)+'L</td><td>'+fmtMoney(cowTotals[id].earning)+'</td></tr>';
+    });
+    cowHtml += '</table><div class="small-note" style="margin-top:6px">Earnings are estimated by each cow\'s share of total milk produced that day — since milk is pooled before sale, this is a fair allocation rather than an exact per-cow sale.</div>';
+  }
+
+  document.getElementById('milk-report').innerHTML = tableHtml + cowHtml;
+}
+
+
+// ================= FEED / EXPENSES =================
+function openFeedModal(species) {
+  document.getElementById('fe-species').value = species;
+  document.getElementById('fe-date').value = todayISO();
+  ['fe-item','fe-qty','fe-unit','fe-cost','fe-supplier'].forEach(function(id){ document.getElementById(id).value=''; });
+  var animalSel = document.getElementById('fe-animal');
+  animalSel.innerHTML = '<option value="">-- Shared pool (default) --</option>';
+  speciesDB(species).animals.forEach(function(a){ animalSel.innerHTML += '<option value="'+a.id+'">'+animalLabel(a)+'</option>'; });
+  openModal('modal-feed');
+}
+function saveFeed() {
+  var species = document.getElementById('fe-species').value;
+  var date = document.getElementById('fe-date').value;
+  var item = document.getElementById('fe-item').value.trim();
+  var cost = parseFloat(document.getElementById('fe-cost').value)||0;
+  if(!date || !item){ alert('Date and item required'); return; }
+  speciesDB(species).feed.push({
+    id: uid(), date: date, category: document.getElementById('fe-category').value, item: item,
+    qty: parseFloat(document.getElementById('fe-qty').value)||0, unit: document.getElementById('fe-unit').value.trim(),
+    cost: cost, supplier: document.getElementById('fe-supplier').value.trim(),
+    animalId: document.getElementById('fe-animal').value || ''
+  });
+  save(); closeModal('modal-feed'); renderFeed(species);
+}
+function deleteFeed(species, id) {
+  if(!confirm('Delete this expense?')) return;
+  var db = speciesDB(species);
+  db.feed = db.feed.filter(function(f){ return f.id!==id; });
+  save(); renderFeed(species);
+}
+function renderFeed(species) {
+  var db = speciesDB(species);
+  var sorted = db.feed.slice().sort(function(a,b){ return b.date.localeCompare(a.date); });
+  var html = '';
+  if(sorted.length===0) html = '<div class="empty-state">No expenses logged yet.</div>';
+  else sorted.forEach(function(f){
+    var assignedLabel = '';
+    if(f.animalId){ var a2 = findAnimal(species, f.animalId); assignedLabel = a2 ? ('→ '+animalLabel(a2)) : ''; }
+    html += '<div class="card"><div class="expense-row"><div>';
+    html += '<div style="font-weight:700;font-size:13px">'+f.category+' · '+f.item+'</div>';
+    html += '<div style="font-size:11px;color:#999">'+f.date+(f.supplier?' · '+f.supplier:'')+'</div>';
+    html += '<div style="font-size:11px;margin-top:2px">'+(assignedLabel? '<span class="badge badge-orange">'+assignedLabel+'</span>' : '<span class="badge badge-gray">Shared pool</span>')+'</div></div>';
+    html += '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">';
+    html += '<span class="expense-amount">'+fmtMoney(f.cost)+'</span>';
+    html += '<button class="btn btn-sm btn-red" onclick="deleteFeed(\''+species+'\',\''+f.id+'\')">🗑️</button></div></div></div>';
+  });
+  document.getElementById(species+'-feed-list').innerHTML = html;
+}
+
+// ================= WEIGHT / SALES =================
+function openSaleModal(species, presetAnimalId, presetEvent) {
+  document.getElementById('sa-species').value = species;
+  var sel = document.getElementById('sa-animal'); sel.innerHTML = '';
+  speciesDB(species).animals.filter(function(a){ return a.status==='active' || a.id===presetAnimalId; }).forEach(function(a){ sel.innerHTML += '<option value="'+a.id+'">'+animalLabel(a)+'</option>'; });
+  if(presetAnimalId) sel.value = presetAnimalId;
+  document.getElementById('sa-date').value = todayISO();
+  document.getElementById('sa-weight').value=''; document.getElementById('sa-price').value=''; document.getElementById('sa-buyer').value='';
+  document.getElementById('sa-event').value = presetEvent || 'Weigh-in';
+  toggleSaleFields();
+  openModal('modal-sale');
+}
+function toggleSaleFields() {
+  document.getElementById('sale-fields').style.display = document.getElementById('sa-event').value==='Sale' ? 'block' : 'none';
+}
+function saveSale() {
+  var species = document.getElementById('sa-species').value;
+  var animalId = document.getElementById('sa-animal').value;
+  var date = document.getElementById('sa-date').value;
+  var event = document.getElementById('sa-event').value;
+  if(!animalId || !date){ alert('Animal and date required'); return; }
+  if(event==='Sale' && !document.getElementById('sa-price').value){ if(!confirm('No sale price entered — save anyway?')) return; }
+  speciesDB(species).sales.push({
+    id: uid(), animalId: animalId, date: date, weight: parseFloat(document.getElementById('sa-weight').value)||null,
+    event: event, salePrice: parseFloat(document.getElementById('sa-price').value)||0,
+    buyer: document.getElementById('sa-buyer').value.trim()
+  });
+  if(event==='Sale'){
+    var db = speciesDB(species);
+    var a = db.animals.find(function(x){ return x.id===animalId; });
+    if(a) a.status = 'sold';
+  }
+  save(); closeModal('modal-sale'); renderAnimals(species); renderSales(species); renderRanking(species);
+}
+function deleteSale(species, id) {
+  if(!confirm('Delete this record?')) return;
+  var db = speciesDB(species);
+  db.sales = db.sales.filter(function(s){ return s.id!==id; });
+  save(); renderSales(species); renderRanking(species);
+}
+function renderSales(species) {
+  var db = speciesDB(species);
+  var sorted = db.sales.slice().sort(function(a,b){ return b.date.localeCompare(a.date); });
+  var html = '';
+  if(sorted.length===0) html = '<div class="empty-state">No weight or sales records yet.</div>';
+  else sorted.forEach(function(s){
+    var a = findAnimal(species, s.animalId);
+    html += '<div class="card"><div class="expense-row"><div>';
+    html += '<div style="font-weight:700;font-size:13px">'+(a?animalLabel(a):'—')+' · '+s.event+'</div>';
+    html += '<div style="font-size:11px;color:#999">'+s.date+(s.weight?' · '+s.weight+' kg':'')+(s.buyer?' · '+s.buyer:'')+'</div></div>';
+    html += '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">';
+    if(s.event==='Sale') html += '<span class="expense-amount" style="color:#2d6a2d">'+fmtMoney(s.salePrice)+'</span>';
+    html += '<button class="btn btn-sm btn-red" onclick="deleteSale(\''+species+'\',\''+s.id+'\')">🗑️</button></div></div></div>';
+  });
+  document.getElementById(species+'-sales-list').innerHTML = html;
+}
+
+// ================= WEIGHT RANKING =================
+var rankSort = { cattle: {key:'currentWeight', dir:'desc'}, goats: {key:'currentWeight', dir:'desc'} };
+function buildWeightRanking(species) {
+  var db = speciesDB(species);
+  var rows = [];
+  db.animals.forEach(function(a){
+    var records = db.sales.filter(function(s){ return s.animalId===a.id && s.weight; }).slice().sort(function(x,y){ return new Date(x.date)-new Date(y.date); });
+    if(records.length===0 && !a.birthWeight && !a.acquiredWeight) return;
+    var latest = records[records.length-1];
+    var prev = records[records.length-2];
+    var baseWeight = a.birthWeight || a.acquiredWeight || (records[0] ? records[0].weight : null);
+    var currentWeight = latest ? latest.weight : baseWeight;
+    var totalGain = (currentWeight!=null && baseWeight!=null) ? currentWeight-baseWeight : null;
+    var gainPerDay = null;
+    if(latest && prev){ var days = Math.max(1, daysBetween(prev.date, latest.date)); gainPerDay = (latest.weight-prev.weight)/days; }
+    rows.push({ id:a.id, label:animalLabel(a), birthWeight:baseWeight, currentWeight:currentWeight, totalGain:totalGain, gainPerDay:gainPerDay });
+  });
+  return rows;
+}
+function sortRanking(species, key) {
+  var s = rankSort[species];
+  if(s.key===key) s.dir = s.dir==='asc'?'desc':'asc'; else { s.key=key; s.dir='desc'; }
+  renderRanking(species);
+}
+function renderRanking(species) {
+  var rows = buildWeightRanking(species);
+  var s = rankSort[species];
+  rows.sort(function(a,b){
+    var av=a[s.key], bv=b[s.key];
+    if(av==null && bv==null) return 0; if(av==null) return 1; if(bv==null) return -1;
+    if(s.key==='label') return s.dir==='asc' ? (''+av).localeCompare(bv) : (''+bv).localeCompare(av);
+    return s.dir==='asc' ? av-bv : bv-av;
+  });
+  var arrow = function(k){ return s.key===k ? (s.dir==='asc'?' ▲':' ▼') : ''; };
+  var html = '';
+  if(rows.length===0) html = '<div class="empty-state">Log weigh-ins and birth weights to see rankings here.</div>';
+  else {
+    html = '<table class="datatable"><tr>';
+    html += '<th onclick="sortRanking(\''+species+'\',\'label\')">Animal'+arrow('label')+'</th>';
+    html += '<th onclick="sortRanking(\''+species+'\',\'birthWeight\')">Birth'+arrow('birthWeight')+'</th>';
+    html += '<th onclick="sortRanking(\''+species+'\',\'currentWeight\')">Current'+arrow('currentWeight')+'</th>';
+    html += '<th onclick="sortRanking(\''+species+'\',\'totalGain\')">Gained'+arrow('totalGain')+'</th>';
+    html += '<th onclick="sortRanking(\''+species+'\',\'gainPerDay\')">Gain/day'+arrow('gainPerDay')+'</th></tr>';
+    rows.forEach(function(r){
+      html += '<tr><td>'+r.label+'</td><td>'+(r.birthWeight!=null?r.birthWeight.toFixed(1):'—')+'</td>';
+      html += '<td><b>'+(r.currentWeight!=null?r.currentWeight.toFixed(1):'—')+'</b></td>';
+      html += '<td>'+(r.totalGain!=null?r.totalGain.toFixed(1):'—')+'</td>';
+      html += '<td>'+(r.gainPerDay!=null?r.gainPerDay.toFixed(2):'—')+'</td></tr>';
+    });
+    html += '</table>';
+  }
+  document.getElementById(species+'-ranking-table').innerHTML = html;
+}
+
+// ================= LABOUR =================
+function getMonthsBetween(startKey, endKey) {
+  var result = [];
+  var sy=parseInt(startKey.slice(0,4),10), sm=parseInt(startKey.slice(5,7),10);
+  var ey=parseInt(endKey.slice(0,4),10), em=parseInt(endKey.slice(5,7),10);
+  var y=sy, m=sm, guard=0;
+  while((y<ey || (y===ey && m<=em)) && guard<2400) {
+    result.push(y + '-' + (m<10?'0':'')+m);
+    m++; if(m>12){ m=1; y++; }
+    guard++;
+  }
+  return result;
+}
+function daysInMonthOf(mKey) {
+  var y=parseInt(mKey.slice(0,4),10), m=parseInt(mKey.slice(5,7),10);
+  return new Date(y, m, 0).getDate();
+}
+function computeEmployeeMonthPay(emp, mKey) {
+  var totalDays = daysInMonthOf(mKey);
+  var recs = DB.labour.attendance.filter(function(a){ return a.employeeId===emp.id && a.date.slice(0,7)===mKey; });
+  var absentFull = recs.filter(function(r){ return r.status==='Absent'; }).length;
+  var halfDays = recs.filter(function(r){ return r.status==='Half-day'; }).length;
+  var otHours = recs.filter(function(r){ return r.status==='OT'; }).reduce(function(s,r){ return s+(r.otHours||0); },0);
+  var effectiveAbsent = absentFull + halfDays*0.5;
+  var presentFullDays = Math.max(0, totalDays - absentFull - halfDays);
+  var salary = emp.monthlySalary || 0;
+  var dailyRate = totalDays>0 ? salary/totalDays : 0;
+  var deduction = effectiveAbsent * dailyRate;
+  var otPay = otHours * (dailyRate/8);
+  var basePay = salary - deduction + otPay;
+  var bonusEarned = 0;
+  if((emp.bonusAmount||0) > 0 && (emp.bonusAbsentLimit||0) > 0 && effectiveAbsent < emp.bonusAbsentLimit) bonusEarned = emp.bonusAmount;
+  var totalEarned = basePay + bonusEarned;
+  var advances = (DB.labour.advances||[]).filter(function(a){ return a.employeeId===emp.id && a.date.slice(0,7)===mKey; }).reduce(function(s,a){ return s+(a.amount||0); },0);
+  return {
+    totalDays: totalDays, presentFullDays: presentFullDays, halfDays: halfDays, absentFull: absentFull, otHours: otHours,
+    dailyRate: dailyRate, deduction: deduction, otPay: otPay, basePay: basePay,
+    bonusEarned: bonusEarned, totalEarned: totalEarned, advances: advances, remaining: totalEarned - advances
+  };
+}
+function allMonthsForEmployee(emp) {
+  var startKey = (emp.joined || todayISO()).slice(0,7);
+  var endKey = todayISO().slice(0,7);
+  return getMonthsBetween(startKey, endKey);
+}
+function monthlyLabourPools() {
+  var pools = {};
+  DB.labour.employees.forEach(function(e){
+    allMonthsForEmployee(e).forEach(function(mk){
+      pools[mk] = (pools[mk]||0) + computeEmployeeMonthPay(e, mk).totalEarned;
+    });
+  });
+  return pools;
+}
+function labourCost() {
+  var pools = monthlyLabourPools();
+  return Object.keys(pools).reduce(function(s,mk){ return s+pools[mk]; }, 0);
+}
+
+function openEmployeeModal() {
+  ['em-name','em-salary','em-bonus','em-bonus-limit'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('em-joined').value = todayISO();
+  document.getElementById('em-edit-id').value = '';
+  openModal('modal-employee');
+}
+function editEmployee(id) {
+  var e = DB.labour.employees.find(function(x){ return x.id===id; });
+  if(!e) return;
+  document.getElementById('em-edit-id').value = e.id;
+  document.getElementById('em-name').value = e.name;
+  document.getElementById('em-role').value = e.role || 'Herder';
+  document.getElementById('em-salary').value = e.monthlySalary || '';
+  document.getElementById('em-joined').value = e.joined || todayISO();
+  document.getElementById('em-bonus').value = e.bonusAmount || '';
+  document.getElementById('em-bonus-limit').value = e.bonusAbsentLimit || '';
+  openModal('modal-employee');
+}
+function saveEmployee() {
+  var name = document.getElementById('em-name').value.trim();
+  if(!name){ alert('Name required'); return; }
+  var editId = document.getElementById('em-edit-id').value;
+  var emp = {
+    id: editId || uid(), name:name, role:document.getElementById('em-role').value,
+    monthlySalary: parseFloat(document.getElementById('em-salary').value)||0,
+    joined: document.getElementById('em-joined').value,
+    bonusAmount: parseFloat(document.getElementById('em-bonus').value)||0,
+    bonusAbsentLimit: parseFloat(document.getElementById('em-bonus-limit').value)||0,
+    status:'active'
+  };
+  if(editId){ var idx = DB.labour.employees.findIndex(function(x){ return x.id===editId; }); if(idx>=0) DB.labour.employees[idx]=emp; }
+  else DB.labour.employees.push(emp);
+  save(); closeModal('modal-employee'); renderEmployees();
+}
+function deleteEmployee(id) {
+  if(!confirm('Delete this employee? Their attendance and advance history will also be removed.')) return;
+  DB.labour.employees = DB.labour.employees.filter(function(e){ return e.id!==id; });
+  DB.labour.attendance = DB.labour.attendance.filter(function(a){ return a.employeeId!==id; });
+  DB.labour.advances = (DB.labour.advances||[]).filter(function(a){ return a.employeeId!==id; });
+  save(); renderEmployees();
+}
+function renderEmployees() {
+  var html = '';
+  if(DB.labour.employees.length===0) html = '<div class="empty-state">No employees added yet.</div>';
+  else DB.labour.employees.forEach(function(e){
+    html += '<div class="card"><div class="expense-row"><div>';
+    html += '<div style="font-weight:700;font-size:13px">'+e.name+'</div><div style="font-size:12px;color:#666">'+e.role+' · '+fmtMoney(e.monthlySalary)+'/month'+(e.bonusAmount?' · Bonus '+fmtMoney(e.bonusAmount)+' if absent < '+e.bonusAbsentLimit+'d':'')+'</div></div>';
+    html += '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">';
+    html += '<button class="btn btn-sm btn-blue" onclick="editEmployee(\''+e.id+'\')">✏️</button>';
+    html += '<button class="btn btn-sm btn-red" onclick="deleteEmployee(\''+e.id+'\')">🗑️</button></div></div></div>';
+  });
+  document.getElementById('labour-employee-list').innerHTML = html;
+}
+
+function toggleAttendanceFields() {
+  document.getElementById('at-ot-group').style.display = document.getElementById('at-status').value==='OT' ? 'block' : 'none';
+}
+function openAttendanceModal() {
+  var sel = document.getElementById('at-employee'); sel.innerHTML = '';
+  DB.labour.employees.forEach(function(e){ sel.innerHTML += '<option value="'+e.id+'">'+e.name+'</option>'; });
+  document.getElementById('at-date').value = todayISO();
+  document.getElementById('at-status').value = 'Absent';
+  document.getElementById('at-ot').value = '';
+  toggleAttendanceFields();
+  openModal('modal-attendance');
+}
+function saveAttendance() {
+  var employeeId = document.getElementById('at-employee').value;
+  var date = document.getElementById('at-date').value;
+  if(!employeeId || !date){ alert('Employee and date required'); return; }
+  DB.labour.attendance.push({ id:uid(), employeeId:employeeId, date:date, status:document.getElementById('at-status').value, otHours:parseFloat(document.getElementById('at-ot').value)||0 });
+  save(); closeModal('modal-attendance'); renderAttendance();
+}
+function deleteAttendance(id) {
+  if(!confirm('Delete this record?')) return;
+  DB.labour.attendance = DB.labour.attendance.filter(function(a){ return a.id!==id; });
+  save(); renderAttendance();
+}
+function renderAttendance() {
+  var sorted = DB.labour.attendance.slice().sort(function(a,b){ return b.date.localeCompare(a.date); });
+  var html = '';
+  if(sorted.length===0) html = '<div class="empty-state">No absences or overtime logged — everyone is assumed present.</div>';
+  else sorted.forEach(function(r){
+    var e = DB.labour.employees.find(function(x){ return x.id===r.employeeId; });
+    var label = r.status==='OT' ? ('OT · '+(r.otHours||0)+'h') : r.status;
+    html += '<div class="card"><div class="expense-row"><div>';
+    html += '<div style="font-weight:700;font-size:13px">'+(e?e.name:'—')+'</div><div style="font-size:12px;color:#666">'+r.date+' · '+label+'</div></div>';
+    html += '<button class="btn btn-sm btn-red" onclick="deleteAttendance(\''+r.id+'\')">🗑️</button></div></div>';
+  });
+  document.getElementById('labour-attendance-list').innerHTML = html;
+}
+
+function openAdvanceModal() {
+  var sel = document.getElementById('ad-employee'); sel.innerHTML = '';
+  DB.labour.employees.forEach(function(e){ sel.innerHTML += '<option value="'+e.id+'">'+e.name+'</option>'; });
+  document.getElementById('ad-date').value = todayISO();
+  document.getElementById('ad-amount').value = '';
+  document.getElementById('ad-note').value = '';
+  openModal('modal-advance');
+}
+function saveAdvance() {
+  var employeeId = document.getElementById('ad-employee').value;
+  var date = document.getElementById('ad-date').value;
+  var amount = parseFloat(document.getElementById('ad-amount').value)||0;
+  if(!employeeId || !date || amount<=0){ alert('Employee, date, and amount are required'); return; }
+  DB.labour.advances.push({ id:uid(), employeeId:employeeId, date:date, amount:amount, note:document.getElementById('ad-note').value.trim() });
+  save(); closeModal('modal-advance'); renderAdvances();
+}
+function deleteAdvance(id) {
+  if(!confirm('Delete this advance record?')) return;
+  DB.labour.advances = DB.labour.advances.filter(function(a){ return a.id!==id; });
+  save(); renderAdvances();
+}
+function renderAdvances() {
+  var sorted = (DB.labour.advances||[]).slice().sort(function(a,b){ return b.date.localeCompare(a.date); });
+  var html = '';
+  if(sorted.length===0) html = '<div class="empty-state">No advances logged yet.</div>';
+  else sorted.forEach(function(r){
+    var e = DB.labour.employees.find(function(x){ return x.id===r.employeeId; });
+    html += '<div class="card"><div class="expense-row"><div>';
+    html += '<div style="font-weight:700;font-size:13px">'+(e?e.name:'—')+'</div><div style="font-size:12px;color:#666">'+r.date+(r.note?' · '+r.note:'')+'</div></div>';
+    html += '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="expense-amount" style="color:#d35400">'+fmtMoney(r.amount)+'</span>';
+    html += '<button class="btn btn-sm btn-red" onclick="deleteAdvance(\''+r.id+'\')">🗑️</button></div></div></div>';
+  });
+  document.getElementById('labour-advance-list').innerHTML = html;
+}
+
+function renderPayroll() {
+  var monthInput = document.getElementById('payroll-month');
+  if(!monthInput) return;
+  if(!monthInput.value) monthInput.value = todayISO().slice(0,7);
+  var mKey = monthInput.value;
+  var rows = DB.labour.employees.map(function(e){
+    var p = computeEmployeeMonthPay(e, mKey);
+    return { name:e.name, p:p };
+  });
+  var html = '';
+  if(rows.length===0) html = '<div class="empty-state">Add employees to see payroll.</div>';
+  else {
+    html = '<table class="datatable"><tr><th>Employee</th><th>Present</th><th>Half</th><th>Absent</th><th>OT(h)</th><th>Base</th><th>Bonus</th><th>Total</th><th>Advance</th><th>Remaining</th></tr>';
+    var totals = { base:0, bonus:0, total:0, advance:0, remaining:0 };
+    rows.forEach(function(r){
+      var p = r.p;
+      totals.base+=p.basePay; totals.bonus+=p.bonusEarned; totals.total+=p.totalEarned; totals.advance+=p.advances; totals.remaining+=p.remaining;
+      html += '<tr><td>'+r.name+'</td><td>'+p.presentFullDays+'</td><td>'+p.halfDays+'</td><td>'+p.absentFull+'</td><td>'+p.otHours+'</td>';
+      html += '<td>'+fmtMoney(p.basePay)+'</td><td>'+fmtMoney(p.bonusEarned)+'</td><td><b>'+fmtMoney(p.totalEarned)+'</b></td><td>'+fmtMoney(p.advances)+'</td><td><b>'+fmtMoney(p.remaining)+'</b></td></tr>';
+    });
+    html += '<tr style="font-weight:700;background:#f7f4ec"><td colspan="5">Total</td><td>'+fmtMoney(totals.base)+'</td><td>'+fmtMoney(totals.bonus)+'</td><td>'+fmtMoney(totals.total)+'</td><td>'+fmtMoney(totals.advance)+'</td><td>'+fmtMoney(totals.remaining)+'</td></tr>';
+    html += '</table>';
+  }
+  document.getElementById('labour-payroll-table').innerHTML = html;
+}
+
+// ================= FINANCE =================
+function cattleFinance() {
+  var c = DB.cattle;
+  var milkIncome = (c.milkSales||[]).reduce(function(s,x){ return s+(x.amount||0); },0);
+  var salesIncome = c.sales.filter(function(s){ return s.event==='Sale'; }).reduce(function(s,x){ return s+(x.salePrice||0); },0);
+  var healthCost = c.health.reduce(function(s,h){ return s+(h.cost||0); },0);
+  var feedCost = c.feed.reduce(function(s,f){ return s+(f.cost||0); },0);
+  var purchaseCost = c.animals.reduce(function(s,a){ return s+(a.acquiredCost||0); },0);
+  var income = milkIncome+salesIncome, expense = healthCost+feedCost+purchaseCost;
+  return { income:income, expense:expense, profit:income-expense };
+}
+function goatFinance() {
+  var g = DB.goats;
+  var salesIncome = g.sales.filter(function(s){ return s.event==='Sale'; }).reduce(function(s,x){ return s+(x.salePrice||0); },0);
+  var healthCost = g.health.reduce(function(s,h){ return s+(h.cost||0); },0);
+  var feedCost = g.feed.reduce(function(s,f){ return s+(f.cost||0); },0);
+  var purchaseCost = g.animals.reduce(function(s,a){ return s+(a.acquiredCost||0); },0);
+  var income = salesIncome, expense = healthCost+feedCost+purchaseCost;
+  return { income:income, expense:expense, profit:income-expense };
+}
+function overheadCost() { return DB.overhead.expenses.reduce(function(s,e){ return s+(e.cost||0); },0); }
+
+// ================= COST ALLOCATION (fair-share feed/labour/overhead per animal) =================
+var CONSUMPTION_WEIGHTS = { bull:1.3, cow:1.0, buck:0.4, doe:0.35, kid:0.15 };
+function animalWeight(type) { return CONSUMPTION_WEIGHTS[type] || 1.0; }
+
+function daysPresentInMonth(sp, animal, mKey) {
+  var parts = mKey.split('-');
+  var y = parseInt(parts[0],10), mo = parseInt(parts[1],10);
+  var monthStart = new Date(y, mo-1, 1);
+  var monthEnd = new Date(y, mo, 0); // last day of month
+  var acqStr = animal.acquiredDate || animal.dob;
+  var startDate = acqStr ? new Date(acqStr+'T00:00:00') : monthStart;
+  if(startDate < monthStart) startDate = monthStart;
+  var endDate = monthEnd;
+  if(animal.status==='sold') {
+    var sale = lastSaleFor(sp, animal.id);
+    if(sale && sale.date) { var sd = new Date(sale.date+'T00:00:00'); if(sd < endDate) endDate = sd; }
+  } else if(animal.status==='deceased' && animal.deceasedDate) {
+    var dd = new Date(animal.deceasedDate+'T00:00:00'); if(dd < endDate) endDate = dd;
+  }
+  if(endDate < startDate) return 0;
+  var days = Math.round((endDate - startDate) / 86400000) + 1;
+  return Math.max(0, days);
+}
+function computeFeedShareForAnimal(sp, animalId) {
+  var db = speciesDB(sp);
+  var pools = {};
+  db.feed.forEach(function(f){ if(!f.animalId){ var mk = monthKey(f.date); pools[mk] = (pools[mk]||0) + (f.cost||0); } });
+  var total = 0;
+  Object.keys(pools).forEach(function(mk){
+    var weights = {}, totalWeight = 0;
+    db.animals.forEach(function(a2){
+      var d = daysPresentInMonth(sp, a2, mk);
+      if(d>0){ var w = animalWeight(a2.type)*d; weights[a2.id]=w; totalWeight+=w; }
+    });
+    if(totalWeight>0 && weights[animalId]) total += (weights[animalId]/totalWeight) * pools[mk];
+  });
+  return total;
+}
+function computeLabourOverheadShareForAnimal(sp, animalId) {
+  var pools = monthlyLabourPools();
+  DB.overhead.expenses.forEach(function(e){ var mk = monthKey(e.date); pools[mk] = (pools[mk]||0) + (e.cost||0); });
+  var total = 0;
+  Object.keys(pools).forEach(function(mk){
+    var weights = {}, totalWeight = 0;
+    ['cattle','goats'].forEach(function(sp2){
+      speciesDB(sp2).animals.forEach(function(a2){
+        var d = daysPresentInMonth(sp2, a2, mk);
+        if(d>0){ var w = animalWeight(a2.type)*d; weights[sp2+'_'+a2.id]=w; totalWeight+=w; }
+      });
+    });
+    var key = sp+'_'+animalId;
+    if(totalWeight>0 && weights[key]) total += (weights[key]/totalWeight) * pools[mk];
+  });
+  return total;
+}
+function computeAnimalCostBreakdown(sp, animal) {
+  var db = speciesDB(sp);
+  var acquisition = animal.acquiredCost || 0;
+  var directHealth = db.health.filter(function(h){ return h.animalId===animal.id; }).reduce(function(s,h){ return s+(h.cost||0); },0);
+  var directFeed = db.feed.filter(function(f){ return f.animalId===animal.id; }).reduce(function(s,f){ return s+(f.cost||0); },0);
+  var feedShare = computeFeedShareForAnimal(sp, animal.id);
+  var labourOhShare = computeLabourOverheadShareForAnimal(sp, animal.id);
+  var costExcl = acquisition + directHealth + directFeed + feedShare;
+  var costIncl = costExcl + labourOhShare;
+  var sale = animal.status==='sold' ? lastSaleFor(sp, animal.id) : null;
+  var salePrice = sale ? (sale.salePrice||0) : null;
+  return {
+    acquisition: acquisition, directHealth: directHealth, directFeed: directFeed,
+    feedShare: feedShare, labourOhShare: labourOhShare,
+    costExcl: costExcl, costIncl: costIncl,
+    salePrice: salePrice,
+    profitExcl: salePrice!=null ? (salePrice-costExcl) : null,
+    profitIncl: salePrice!=null ? (salePrice-costIncl) : null
+  };
+}
+
+function monthKey(d){ return d ? d.slice(0,7) : 'unknown'; }
+function monthLabel(k){ if(!k||k==='unknown') return '—'; var p=k.split('-'); var m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return m[parseInt(p[1],10)-1]+' '+p[0].slice(2); }
+function monthlySeries() {
+  var map = {};
+  function add(k,inc,exp){ if(!map[k]) map[k]={income:0,expense:0}; map[k].income+=inc; map[k].expense+=exp; }
+  (DB.cattle.milkSales||[]).forEach(function(s){ add(monthKey(s.date), s.amount||0, 0); });
+  DB.cattle.sales.concat(DB.goats.sales).forEach(function(s){ if(s.event==='Sale') add(monthKey(s.date), s.salePrice||0, 0); });
+  DB.cattle.health.concat(DB.goats.health).forEach(function(h){ add(monthKey(h.date), 0, h.cost||0); });
+  DB.cattle.feed.concat(DB.goats.feed).forEach(function(f){ add(monthKey(f.date), 0, f.cost||0); });
+  DB.overhead.expenses.forEach(function(o){ add(monthKey(o.date), 0, o.cost||0); });
+  var labourPools = monthlyLabourPools();
+  Object.keys(labourPools).forEach(function(mk){ add(mk, 0, labourPools[mk]); });
+  var keys = Object.keys(map).filter(function(k){ return k!=='unknown'; }).sort().slice(-6);
+  return keys.map(function(k){ return { month:monthLabel(k), income:Math.round(map[k].income), expense:Math.round(map[k].expense) }; });
+}
+function openOverheadModal() {
+  document.getElementById('oh-date').value = todayISO();
+  document.getElementById('oh-item').value=''; document.getElementById('oh-cost').value='';
+  openModal('modal-overhead');
+}
+function saveOverhead() {
+  var date = document.getElementById('oh-date').value, item = document.getElementById('oh-item').value.trim();
+  var cost = parseFloat(document.getElementById('oh-cost').value)||0;
+  if(!date || !item){ alert('Date and item required'); return; }
+  DB.overhead.expenses.push({ id:uid(), date:date, category:document.getElementById('oh-category').value, item:item, cost:cost });
+  save(); closeModal('modal-overhead'); renderFinance();
+}
+function deleteOverhead(id) {
+  if(!confirm('Delete this expense?')) return;
+  DB.overhead.expenses = DB.overhead.expenses.filter(function(e){ return e.id!==id; });
+  save(); renderFinance();
+}
+function saveRates() {
+  DB.settings.cattleRate = parseFloat(document.getElementById('rate-cattle').value)||0;
+  DB.settings.goatRate = parseFloat(document.getElementById('rate-goat').value)||0;
+  save();
+  renderNetWorthReport();
+}
+function getAnimalCurrentWeight(sp, animal) {
+  var hist = getAnimalWeightHistory(sp, animal.id);
+  if(hist.length) return hist[hist.length-1].weight;
+  return animal.birthWeight || animal.acquiredWeight || null;
+}
+function computeNetWorth(sp, ratePerKg) {
+  var db = speciesDB(sp);
+  var rows = [];
+  var total = 0, excluded = 0;
+  db.animals.filter(function(a){ return a.status==='active'; }).forEach(function(a){
+    var w = getAnimalCurrentWeight(sp, a);
+    if(w!=null){ var val = w*ratePerKg; total += val; rows.push({ label:animalLabel(a), type:typeLabel(sp,a.type), weight:w, value:val }); }
+    else excluded++;
+  });
+  return { total:total, rows:rows, excluded:excluded };
+}
+function computeRealizedIncomeForSpecies(sp) {
+  var income = 0;
+  if(sp==='cattle') income += DB.cattle.milkSales.reduce(function(s,x){ return s+(x.amount||0); },0);
+  income += speciesDB(sp).sales.filter(function(s){ return s.event==='Sale'; }).reduce(function(s,x){ return s+(x.salePrice||0); },0);
+  return income;
+}
+function computeRealizedIncome() {
+  return computeRealizedIncomeForSpecies('cattle') + computeRealizedIncomeForSpecies('goats');
+}
+function computeActiveInvestment(sp) {
+  return speciesDB(sp).animals.filter(function(a){ return a.status==='active'; }).reduce(function(s,a){
+    return s + computeAnimalCostBreakdown(sp, a).costExcl;
+  }, 0);
+}
+function computeTotalAnimalCosting() {
+  var costing = 0;
+  ['cattle','goats'].forEach(function(sp){
+    var db = speciesDB(sp);
+    costing += db.animals.reduce(function(s,a){ return s+(a.acquiredCost||0); },0);
+    costing += db.health.reduce(function(s,h){ return s+(h.cost||0); },0);
+    costing += db.feed.reduce(function(s,f){ return s+(f.cost||0); },0);
+  });
+  return costing;
+}
+function computeTotalCosting() {
+  return computeTotalAnimalCosting() + labourCost() + overheadCost();
+}
+function renderNetWorthReport() {
+  document.getElementById('rate-cattle').value = DB.settings.cattleRate || '';
+  document.getElementById('rate-goat').value = DB.settings.goatRate || '';
+  var cattleNW = computeNetWorth('cattle', DB.settings.cattleRate||0);
+  var goatNW = computeNetWorth('goats', DB.settings.goatRate||0);
+  var realized = computeRealizedIncome();
+  var animalCosting = computeTotalAnimalCosting();
+  var lc = labourCost(), oc = overheadCost();
+  var costing = animalCosting + lc + oc;
+  var netProfit = (cattleNW.total + goatNW.total + realized) - costing;
+
+  document.getElementById('nw-cattle').textContent = fmtMoney(cattleNW.total);
+  document.getElementById('nw-goat').textContent = fmtMoney(goatNW.total);
+  document.getElementById('inv-cattle').textContent = fmtMoney(computeActiveInvestment('cattle'));
+  document.getElementById('inv-goat').textContent = fmtMoney(computeActiveInvestment('goats'));
+  document.getElementById('earn-cattle').textContent = fmtMoney(computeRealizedIncomeForSpecies('cattle'));
+  document.getElementById('earn-goat').textContent = fmtMoney(computeRealizedIncomeForSpecies('goats'));
+  document.getElementById('nw-total').textContent = fmtMoney(cattleNW.total + goatNW.total);
+  document.getElementById('f-labour-oh').textContent = fmtMoney(lc + oc);
+  document.getElementById('nw-costing').textContent = fmtMoney(animalCosting);
+  document.getElementById('nw-realized').textContent = fmtMoney(realized);
+  var npEl = document.getElementById('nw-netprofit');
+  npEl.textContent = (netProfit>=0?'+':'') + fmtMoney(netProfit);
+  npEl.style.color = netProfit>=0 ? '#1e8449' : '#c0392b';
+
+  var excludedTotal = cattleNW.excluded + goatNW.excluded;
+  var note = 'Net worth uses each active animal\'s most recent weigh-in (or birth/purchase weight if none yet), at the rate you set above.';
+  if(excludedTotal>0) note += ' ⚠️ '+excludedTotal+' active animal(s) have no weight on record and are excluded — add a weigh-in or birth/purchase weight to include them.';
+  if(!DB.settings.cattleRate && !DB.settings.goatRate) note += ' Set your ৳/kg rates above to see real numbers.';
+  document.getElementById('nw-note').textContent = note;
+
+  var allRows = cattleNW.rows.concat(goatNW.rows).sort(function(a,b){ return b.value-a.value; });
+  var html = '';
+  if(allRows.length===0) html = '<div class="empty-state">No active animals with a known weight yet.</div>';
+  else {
+    html = '<table class="datatable"><tr><th>Animal</th><th>Type</th><th>Weight</th><th>Value</th></tr>';
+    allRows.forEach(function(r){ html += '<tr><td>'+r.label+'</td><td>'+r.type+'</td><td>'+r.weight+' kg</td><td>'+fmtMoney(r.value)+'</td></tr>'; });
+    html += '</table>';
+  }
+  document.getElementById('nw-breakdown-table').innerHTML = html;
+}
+function renderFinance() {
+  renderNetWorthReport();
+  var cf = cattleFinance(), gf = goatFinance(), lc = labourCost(), oc = overheadCost();
+  var net = cf.profit+gf.profit-lc-oc;
+  document.getElementById('f-cattle-pl').textContent = fmtMoney(cf.profit);
+  document.getElementById('f-goat-pl').textContent = fmtMoney(gf.profit);
+  document.getElementById('f-net').textContent = fmtMoney(net);
+
+  var series = monthlySeries();
+  var max = 1; series.forEach(function(s){ max = Math.max(max, s.income, s.expense); });
+  var chart = '<div style="display:flex;gap:4px;margin-bottom:6px;font-size:11px"><span style="color:#2d6a2d">■ Income</span><span style="color:#c0392b">■ Expense</span></div>';
+  chart += '<div style="display:flex;align-items:flex-end;gap:10px;height:120px;overflow-x:auto">';
+  series.forEach(function(s){
+    chart += '<div style="text-align:center;flex-shrink:0"><div style="display:flex;align-items:flex-end;gap:2px;height:100px">';
+    chart += '<div style="width:12px;background:#2d6a2d;height:'+Math.max(2,(s.income/max)*100)+'%"></div>';
+    chart += '<div style="width:12px;background:#c0392b;height:'+Math.max(2,(s.expense/max)*100)+'%"></div>';
+    chart += '</div><div style="font-size:10px;color:#888;margin-top:2px">'+s.month+'</div></div>';
+  });
+  chart += '</div>';
+  document.getElementById('f-chart').innerHTML = series.length ? chart : '<div class="empty-state">No data yet.</div>';
+
+  var oh = DB.overhead.expenses.slice().sort(function(a,b){ return b.date.localeCompare(a.date); });
+  var html = '';
+  if(oh.length===0) html = '<div class="empty-state">No overhead expenses logged yet.</div>';
+  else oh.forEach(function(e){
+    html += '<div class="card"><div class="expense-row"><div><div style="font-weight:700;font-size:13px">'+e.category+' · '+e.item+'</div><div style="font-size:11px;color:#999">'+e.date+'</div></div>';
+    html += '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="expense-amount">'+fmtMoney(e.cost)+'</span>';
+    html += '<button class="btn btn-sm btn-red" onclick="deleteOverhead(\''+e.id+'\')">🗑️</button></div></div></div>';
+  });
+  document.getElementById('overhead-list').innerHTML = html;
+  renderProfitability();
+}
+function renderProfitability() {
+  var includeOh = document.getElementById('profit-include-oh');
+  var withOh = includeOh ? includeOh.checked : true;
+  var rows = [];
+  ['cattle','goats'].forEach(function(sp){
+    speciesDB(sp).animals.filter(function(a){ return a.status==='sold'; }).forEach(function(a){
+      var b = computeAnimalCostBreakdown(sp, a);
+      rows.push({
+        sp: sp, label: animalLabel(a),
+        sale: b.salePrice, cost: withOh ? b.costIncl : b.costExcl,
+        profit: withOh ? b.profitIncl : b.profitExcl
+      });
+    });
+  });
+  rows.sort(function(x,y){ return (y.profit||0)-(x.profit||0); });
+  var html = '';
+  if(rows.length===0) html = '<div class="empty-state">No sold animals yet — profitability shows up here once you record a sale.</div>';
+  else {
+    html = '<table class="datatable"><tr><th>Animal</th><th>Species</th><th>Sale</th><th>Cost</th><th>Profit/Loss</th></tr>';
+    rows.forEach(function(r){
+      var color = r.profit>=0 ? '#1e8449' : '#c0392b';
+      html += '<tr><td>'+r.label+'</td><td>'+(r.sp==='cattle'?'Cattle':'Goats')+'</td><td>'+fmtMoney(r.sale)+'</td><td>'+fmtMoney(r.cost)+'</td><td style="color:'+color+';font-weight:700">'+(r.profit>=0?'+':'')+fmtMoney(r.profit)+'</td></tr>';
+    });
+    html += '</table>';
+  }
+  document.getElementById('profitability-table').innerHTML = html;
+}
+
+// ================= DASHBOARD =================
+function gestationColor(daysRemaining, gDays) {
+  if(daysRemaining<=0) return '#c0392b';
+  var ratio = Math.max(0, Math.min(1, daysRemaining/gDays));
+  return ratio>0.5 ? '#2d6a2d' : (ratio>0.25 ? '#d35400' : '#c0392b');
+}
+function buildCalvingList(db, gDays) {
+  var byDam = {};
+  db.breeding.forEach(function(b){ (byDam[b.damId]=byDam[b.damId]||[]).push(b); });
+  var rows = [];
+  Object.keys(byDam).forEach(function(damId){
+    var list = byDam[damId].slice().sort(function(a,b){ return new Date(a.breedingDate||0)-new Date(b.breedingDate||0); });
+    var last = list[list.length-1];
+    if(last && !last.actualBirthDate && last.expectedDueDate){
+      rows.push({ damId:damId, due:last.expectedDueDate, daysRemaining: daysBetween(todayISO(), last.expectedDueDate) });
+    }
+  });
+  rows.sort(function(a,b){ return a.daysRemaining-b.daysRemaining; });
+  return rows;
+}
+function buildMilkingList() {
+  var byDam = {};
+  DB.cattle.breeding.forEach(function(b){ (byDam[b.damId]=byDam[b.damId]||[]).push(b); });
+  var rows = [];
+  Object.keys(byDam).forEach(function(damId){
+    var list = byDam[damId].slice().sort(function(a,b){ return new Date(a.breedingDate||0)-new Date(b.breedingDate||0); });
+    var births = list.filter(function(b){ return b.actualBirthDate; });
+    if(births.length===0) return;
+    var lastBirth = births[births.length-1];
+    var nextActive = list.filter(function(b){ return b!==lastBirth && new Date(b.breedingDate)>new Date(lastBirth.breedingDate) && !b.actualBirthDate; })[0];
+    var daysInMilk = daysBetween(lastBirth.actualBirthDate, todayISO());
+    var dryOff = null;
+    if(nextActive && nextActive.expectedDueDate){ var d = new Date(nextActive.expectedDueDate+'T00:00:00'); d.setDate(d.getDate()-60); dryOff = d.toISOString().split('T')[0]; }
+    rows.push({ damId:damId, start:lastBirth.actualBirthDate, daysInMilk:daysInMilk, dryOff:dryOff });
+  });
+  rows.sort(function(a,b){ return b.daysInMilk-a.daysInMilk; });
+  return rows;
+}
+function renderDashboard() {
+  var activeCattle = DB.cattle.animals.filter(function(a){ return a.status==='active'; });
+  document.getElementById('d-bulls').textContent = activeCattle.filter(function(a){ return a.type==='bull'; }).length;
+  document.getElementById('d-cows').textContent = activeCattle.filter(function(a){ return a.type==='cow'; }).length;
+  document.getElementById('d-goats').textContent = DB.goats.animals.filter(function(a){ return a.status==='active'; }).length;
+  var month = todayISO().slice(0,7);
+  var milkTotal = DB.cattle.milk.filter(function(m){ return m.date.slice(0,7)===month; }).reduce(function(s,m){ return s+(m.morning||0)+(m.evening||0); },0);
+  document.getElementById('d-milk').textContent = milkTotal.toFixed(0)+' L';
+
+  var cf = cattleFinance(), gf = goatFinance(), lc = labourCost(), oc = overheadCost();
+  document.getElementById('d-cattle-pl').textContent = fmtMoney(cf.profit);
+  document.getElementById('d-goat-pl').textContent = fmtMoney(gf.profit);
+  document.getElementById('d-net-pl').textContent = fmtMoney(cf.profit+gf.profit-lc-oc);
+
+  var today = todayISO();
+  var due = DB.cattle.health.map(function(h){ return {h:h,sp:'Cattle'}; }).concat(DB.goats.health.map(function(h){ return {h:h,sp:'Goats'}; }))
+    .filter(function(x){ if(!x.h.nextDate) return false; var d = daysBetween(today, x.h.nextDate); return d>=-1 && d<=14; })
+    .sort(function(a,b){ return a.h.nextDate.localeCompare(b.h.nextDate); });
+  var dh = '';
+  if(due.length===0) dh = '<div class="empty-state" style="padding:10px">Nothing due soon.</div>';
+  else due.forEach(function(x){ dh += '<div class="expense-item"><div class="expense-row"><span style="font-size:13px">'+x.sp+' · '+x.h.type+'</span><span style="font-size:12px;color:#d35400;font-weight:600">'+x.h.nextDate+'</span></div></div>'; });
+  document.getElementById('d-health-due').innerHTML = dh;
+
+  var bc = buildCalvingList(DB.cattle,280).map(function(r){ r.sp='Cattle'; r.g=280; r.animal=findAnimal('cattle',r.damId); return r; })
+    .concat(buildCalvingList(DB.goats,150).map(function(r){ r.sp='Goats'; r.g=150; r.animal=findAnimal('goats',r.damId); return r; }))
+    .sort(function(a,b){ return a.daysRemaining-b.daysRemaining; });
+  var bh = '';
+  if(bc.length===0) bh = '<div class="empty-state" style="padding:10px">No active pregnancies.</div>';
+  else bc.forEach(function(r){
+    var color = gestationColor(r.daysRemaining, r.g);
+    var pct = Math.max(0,Math.min(100, (r.daysRemaining/(r.g+10))*100));
+    bh += '<div class="expense-item"><div class="expense-row"><span style="font-size:13px">'+r.sp+' · '+(r.animal?animalLabel(r.animal):'—')+'</span>';
+    bh += '<span style="font-size:12px;font-weight:700;color:'+color+'">'+(r.daysRemaining>=0?r.daysRemaining+'d left':'overdue '+(-r.daysRemaining)+'d')+'</span></div>';
+    bh += '<div class="gradient-track"><div class="gradient-marker" style="left:'+pct+'%"></div></div></div>';
+  });
+  document.getElementById('d-birth-countdown').innerHTML = bh;
+
+  var ml = buildMilkingList();
+  var mh = '';
+  if(ml.length===0) mh = '<div class="empty-state" style="padding:10px">No lactating cows yet.</div>';
+  else ml.forEach(function(r){
+    var a = findAnimal('cattle', r.damId);
+    mh += '<div class="expense-item"><div class="expense-row"><span style="font-size:13px">'+(a?animalLabel(a):'—')+'</span><span style="font-size:12px;font-weight:700">'+r.daysInMilk+'d</span></div>';
+    if(r.dryOff){
+      var totalSpan = Math.max(1, daysBetween(r.start, r.dryOff));
+      var milkingSpan = Math.max(0, totalSpan-60);
+      var pctMilk = Math.min(100,(milkingSpan/totalSpan)*100);
+      var pctNow = Math.min(100,(r.daysInMilk/totalSpan)*100);
+      mh += '<div class="milk-track"><div class="milk-fill" style="width:'+pctMilk+'%"></div><div class="milk-dry" style="left:'+pctMilk+'%;right:0"></div><div class="milk-marker" style="left:'+pctNow+'%"></div></div>';
+      mh += '<div class="small-note">Dry off: '+r.dryOff+'</div>';
+    } else mh += '<div class="milk-track"><div class="milk-fill" style="width:'+Math.min(100,(r.daysInMilk/305)*100)+'%"></div></div><div class="small-note">Not yet rebred</div>';
+    mh += '</div>';
+  });
+  document.getElementById('d-milking').innerHTML = mh;
+}
+
+// ================= LIVE SYNC (Firebase Firestore — real-time, automatic) =================
+// Photos are synced as separate small documents (one per animal) so the main
+// data document stays tiny and never hits Firestore's 1MB-per-document limit.
+var pushTimer = null;
+var fbUnsubscribe = null;
+var fbPhotoUnsubscribe = null;
+var fbDocRef = null; // assigned in onFirebaseScriptsLoaded() once Firebase has actually loaded
+var photoCache = {}; // "species_animalId" -> base64 photo, filled from the photos collection
+
+function getSyncEnabled(){ try { return localStorage.getItem('fb-sync-enabled') !== '0'; } catch(e){ return true; } }
+function setSyncEnabled(on){ try { localStorage.setItem('fb-sync-enabled', on ? '1' : '0'); } catch(e){} }
+function photoDocId(species, animalId){ return species + '_' + animalId; }
+
+function setSyncStatusText(t, color) {
+  var el = document.getElementById('sync-status');
+  if(el){ el.textContent = t; el.style.color = color || '#888'; }
+}
+function refreshSyncUI() {
+  updateHeaderDot();
+  var toggleBtn = document.getElementById('sync-toggle-btn');
+  if(!toggleBtn) return;
+  if(!fbReady) {
+    if(fbLoadFailed) setSyncStatusText('Could not reach Firebase (check internet) — Manual Backup below still works fully.', '#c0392b');
+    else setSyncStatusText('Connecting to sync service…', '#888');
+    toggleBtn.style.display='none';
+    return;
+  }
+  toggleBtn.style.display = 'inline-block';
+  toggleBtn.textContent = getSyncEnabled() ? '⏸️ Pause auto-sync' : '▶️ Enable auto-sync';
+}
+function buildSlimPayload() {
+  // Deep copy of DB with photo data stripped out of every animal (photos sync separately)
+  var slim = JSON.parse(JSON.stringify(DB));
+  ['cattle','goats'].forEach(function(sp){
+    slim[sp].animals.forEach(function(a){ if(a.photo){ a.hasPhoto = true; delete a.photo; } });
+  });
+  return slim;
+}
+function pushPhotos() {
+  if(!fbReady) return;
+  ['cattle','goats'].forEach(function(sp){
+    DB[sp].animals.forEach(function(a){
+      if(a.photo && a.photo.length < 900000) {
+        fbDb.collection('farmledger_photos').doc(photoDocId(sp, a.id)).set({ photo: a.photo, updatedAt: DB.updatedAt || Date.now() }).catch(function(){});
+      }
+    });
+  });
+}
+function mergeCachedPhotos() {
+  ['cattle','goats'].forEach(function(sp){
+    DB[sp].animals.forEach(function(a){
+      var cached = photoCache[photoDocId(sp, a.id)];
+      if(cached && !a.photo) a.photo = cached;
+    });
+  });
+}
+function doPush() {
+  if(!fbReady || !getSyncEnabled() || !fbDocRef) return;
+  var payload = buildSlimPayload();
+  var size = JSON.stringify(payload).length;
+  if(size > 900000) { setSyncStatusText('Too much non-photo data to sync — unusually large. Manual Backup still works.', '#c0392b'); return; }
+  setSyncStatusText('Syncing…');
+  fbDocRef.set(payload)
+    .then(function(){ setSyncStatusText('✅ Synced ' + new Date().toLocaleTimeString(), '#2d6a2d'); pushPhotos(); })
+    .catch(function(err){ setSyncStatusText('Sync error: ' + (err && err.message ? err.message : 'unknown') + ' — data still saved on this device', '#c0392b'); });
+}
+function schedulePush() {
+  if(!fbReady || !getSyncEnabled()) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(doPush, 400);
+}
+// Flush immediately (skip the debounce) the moment the app is backgrounded, tab switched, or closed —
+// this closes the small window where closing the app quickly after an edit could skip the cloud save.
+document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'hidden'){ clearTimeout(pushTimer); doPush(); } });
+window.addEventListener('pagehide', function(){ clearTimeout(pushTimer); doPush(); });
+function applyIncoming(data) {
+  if(typeof data.updatedAt === 'number' && typeof DB.updatedAt === 'number' && data.updatedAt <= DB.updatedAt) return; // safety: never let older/equal data overwrite
+  // Capture whatever photos we already have locally BEFORE overwriting — incoming sync data never
+  // contains photos (they sync separately), so without this a photo could be wiped if its own
+  // upload hadn't succeeded yet, even though the animal data itself is safe to update.
+  var oldPhotos = {};
+  ['cattle','goats'].forEach(function(sp){
+    ((DB[sp] && DB[sp].animals) || []).forEach(function(a){ if(a.photo) oldPhotos[photoDocId(sp,a.id)] = a.photo; });
+  });
+  if(data.settings) DB.settings = data.settings;
+  if(data.cattle) DB.cattle = data.cattle;
+  if(data.goats) DB.goats = data.goats;
+  if(data.labour) DB.labour = data.labour;
+  if(data.overhead) DB.overhead = data.overhead;
+  if(!DB.cattle.milkSales) DB.cattle.milkSales = [];
+  if(!DB.labour.advances) DB.labour.advances = [];
+  DB.updatedAt = data.updatedAt || Date.now();
+  ['cattle','goats'].forEach(function(sp){
+    DB[sp].animals.forEach(function(a){
+      var key = photoDocId(sp, a.id);
+      if(photoCache[key]) a.photo = photoCache[key];       // prefer the synced copy if we have one
+      else if(oldPhotos[key]) a.photo = oldPhotos[key];     // otherwise never lose what we already had locally
+    });
+  });
+  try { localStorage.setItem('farmledger2', JSON.stringify(DB)); } catch(e){}
+  var activePage = document.querySelector('.tab-bar-btn.active');
+  var names = ['dashboard','cattle','goats','labour','finance','backup'];
+  var idx = Array.prototype.indexOf.call(document.querySelectorAll('.tab-bar-btn'), activePage);
+  showTopPage(names[idx>=0?idx:0]);
+  setSyncStatusText('✅ Updated from your other device — ' + new Date().toLocaleTimeString(), '#2d6a2d');
+}
+function startFirestoreListener() {
+  if(!fbReady || !getSyncEnabled() || !fbDocRef) return;
+  if(fbUnsubscribe) fbUnsubscribe();
+  if(fbPhotoUnsubscribe) fbPhotoUnsubscribe();
+  setSyncStatusText('Connecting…');
+  fbPhotoUnsubscribe = fbDb.collection('farmledger_photos').onSnapshot(function(snap){
+    snap.forEach(function(doc){ photoCache[doc.id] = doc.data().photo; });
+    mergeCachedPhotos();
+    save_noPush();
+  }, function(){});
+  fbUnsubscribe = fbDocRef.onSnapshot(function(doc){
+    if(doc.metadata.hasPendingWrites) return; // ignore our own optimistic local write echo
+    if(!doc.exists){ setSyncStatusText('Connected — waiting for first sync…', '#888'); schedulePush(); return; }
+    var data = doc.data();
+    if(typeof data.updatedAt === 'number' && data.updatedAt > (DB.updatedAt||0)) applyIncoming(data);
+    else setSyncStatusText('✅ Synced ' + new Date().toLocaleTimeString(), '#2d6a2d');
+  }, function(err){
+    setSyncStatusText('Sync connection error: ' + (err && err.message ? err.message : 'unknown'), '#c0392b');
+  });
+}
+function save_noPush() {
+  // Persist locally + refresh current view WITHOUT triggering another sync push (used after a photo-only update)
+  try { localStorage.setItem('farmledger2', JSON.stringify(DB)); } catch(e){}
+  var activePage = document.querySelector('.tab-bar-btn.active');
+  var names = ['dashboard','cattle','goats','labour','finance','backup'];
+  var idx = Array.prototype.indexOf.call(document.querySelectorAll('.tab-bar-btn'), activePage);
+  if(idx>=0) showTopPage(names[idx]);
+}
+function toggleSync() {
+  var on = !getSyncEnabled();
+  setSyncEnabled(on);
+  refreshSyncUI();
+  if(on) startFirestoreListener();
+  else { if(fbUnsubscribe){ fbUnsubscribe(); fbUnsubscribe=null; } if(fbPhotoUnsubscribe){ fbPhotoUnsubscribe(); fbPhotoUnsubscribe=null; } setSyncStatusText('Paused'); }
+}
+function initSync() {
+  refreshSyncUI();
+  if(fbReady && getSyncEnabled()) startFirestoreListener();
+}
+
+// ================= BACKUP =================
+function markBackedUp() {
+  try { localStorage.setItem('last-backup-at', Date.now().toString()); } catch(e){}
+  updateLastBackupNote();
+}
+function updateLastBackupNote() {
+  var el = document.getElementById('last-backup-note');
+  if(!el) return;
+  var t = null; try { t = localStorage.getItem('last-backup-at'); } catch(e){}
+  if(!t) { el.textContent = 'You have not taken a backup yet on this device.'; el.style.color = '#c0392b'; return; }
+  var d = new Date(parseInt(t,10));
+  el.style.color = '#888';
+  el.textContent = 'Last backup: ' + d.toLocaleString();
+}
+function downloadBackup() {
+  var blob = new Blob([JSON.stringify(DB, null, 2)], { type:'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a'); a.href = url; a.download = 'farm-ledger-backup-' + todayISO() + '.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  document.getElementById('backup-msg').textContent = 'Backup downloaded.';
+  markBackedUp();
+}
+function shareBackup() {
+  var json = JSON.stringify(DB, null, 2);
+  var file = new File([json], 'farm-ledger-backup-' + todayISO() + '.json', { type:'application/json' });
+  if(navigator.canShare && navigator.canShare({ files:[file] })) {
+    navigator.share({ files:[file], title:'Farm Ledger backup' })
+      .then(function(){ document.getElementById('backup-msg').textContent = 'Backup shared.'; markBackedUp(); })
+      .catch(function(){});
+  } else {
+    downloadBackup();
+  }
+}
+function restoreBackup(input) {
+  var file = input.files[0]; if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try {
+      var data = JSON.parse(e.target.result);
+      DB = data;
+      if(!DB.cattle) DB.cattle = { animals:[], health:[], breeding:[], milk:[], milkSales:[], feed:[], sales:[] };
+      if(!DB.cattle.milkSales) DB.cattle.milkSales = [];
+      if(!DB.goats) DB.goats = { animals:[], health:[], breeding:[], feed:[], sales:[] };
+      if(!DB.labour) DB.labour = { employees:[], attendance:[], advances:[] };
+      if(!DB.labour.advances) DB.labour.advances = [];
+      if(!DB.overhead) DB.overhead = { expenses:[] };
+      save();
+      document.getElementById('backup-msg').textContent = 'Backup restored successfully.';
+      showTopPage('dashboard');
+    } catch(err){ document.getElementById('backup-msg').textContent = 'Could not read that file.'; }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+function initBackupTab() {
+  updateLastBackupNote();
+  if(navigator.share) document.getElementById('share-backup-btn').style.display = 'inline-block';
+}
+
+// ================= INIT =================
+load();
+
+// ---- Hard diagnostic: proves whether localStorage is actually persisting across reopens ----
+(function(){
+  var el = document.getElementById('diag-banner');
+  var openCount = 0;
+  try {
+    openCount = parseInt(localStorage.getItem('diag-open-count') || '0', 10) + 1;
+    localStorage.setItem('diag-open-count', openCount.toString());
+  } catch(e) { el.textContent = '🔍 DIAGNOSTIC: localStorage is completely blocked in this browser context (' + e.message + ').'; return; }
+  var animalCount = (DB.cattle.animals||[]).length + (DB.goats.animals||[]).length;
+  el.textContent = '🔍 DIAGNOSTIC — app opened ' + openCount + ' time(s) on this exact page/origin · ' + animalCount + ' animal(s) currently loaded from storage.';
+  if(openCount === 1 && animalCount > 0) {
+    el.textContent += ' ⚠️ Counter reset to 1 but animals exist — you are likely on a NEW/different origin than last time (confirms the content:// instability theory).';
+  }
+})();
+
+function updateHeaderDot() {
+  var dot = document.getElementById('header-sync-dot');
+  if(!dot) return;
+  if(!fbReady) { dot.style.color = fbLoadFailed ? '#ff6b6b' : '#f1c86b'; dot.title = fbLoadFailed ? 'Sync: unavailable' : 'Sync: connecting'; }
+  else { dot.style.color = getSyncEnabled() ? '#7ee787' : '#ccc'; dot.title = getSyncEnabled() ? 'Sync: on' : 'Sync: paused'; }
+}
+setInterval(updateHeaderDot, 1000);
+
+initSync();
+renderDashboard();
+setTimeout(function(){ if(!fbReady && !fbLoadFailed) onFirebaseScriptsFailed(); }, 10000);
+</script>
+</body>
+</html>
