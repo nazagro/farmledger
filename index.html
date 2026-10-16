@@ -131,6 +131,39 @@ details.card summary::-webkit-details-marker{display:none}
 .mtable td{padding:8px 4px;border-bottom:1px solid var(--line)}
 .kv{display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0;color:#555}
 .photo-pick{display:flex;align-items:center;gap:12px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.tile{position:relative;overflow:hidden;border-radius:22px;padding:16px 14px;background:linear-gradient(145deg,color-mix(in srgb,var(--c) 14%,#fff),color-mix(in srgb,var(--c) 4%,#fff));border:1px solid color-mix(in srgb,var(--c) 22%,#fff)}
+.tile:after{content:"";position:absolute;right:-18px;bottom:-18px;width:80px;height:80px;border-radius:50%;background:color-mix(in srgb,var(--c) 12%,transparent)}
+.tic{width:38px;height:38px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 2px 8px color-mix(in srgb,var(--c) 25%,transparent);margin-bottom:12px;position:relative;z-index:1}
+.tn{font-size:30px;font-weight:800;color:var(--c);line-height:1;position:relative;z-index:1}
+.tl{font-size:12px;color:var(--mut);margin-top:5px;font-weight:600;position:relative;z-index:1}
+.stackbar{display:flex;height:14px;border-radius:10px;overflow:hidden;gap:2px;margin:4px 0 2px}
+.spark{display:flex;align-items:flex-end;gap:8px;height:112px}
+.sp{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;height:100%}
+.spb{width:100%;border-radius:8px 8px 4px 4px;background:#cfe3d8}
+.spb.on{background:linear-gradient(180deg,#2c8a60,var(--g))}
+.spv{font-size:10px;color:var(--mut);font-weight:600;min-height:13px}
+.spl{font-size:10px;color:var(--mut)}
+.pills{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.pill{display:flex;align-items:center;gap:10px;padding:12px;border-radius:18px;border:1px solid var(--line);background:#fff}
+.pill .pi{width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.pill .pv{font-weight:800;font-size:14px}
+.pill.up{background:#f1faf5}.pill.up .pi{background:#d9f0e3}.pill.up .pv{color:#1b7a4a}
+.pill.dn{background:#fdf3f2}.pill.dn .pi{background:#f9dcd9}.pill.dn .pv{color:#b5392e}
+.pill.wn{background:#fdf6e6}.pill.wn .pi{background:#f6e6bd}.pill.wn .pv{color:#9a6b12}
+.pick{width:100%;display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.pickbox{position:absolute;top:105%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.14);z-index:30;max-height:280px;overflow-y:auto}
+.pickrow{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #f3f4f1;cursor:pointer}
+.dayhead{display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:#555;background:#f3f5f1;border-radius:8px;padding:5px 9px;margin-bottom:2px}
+.payrow{display:flex;align-items:center;gap:8px;font-size:13px;padding:7px 2px;border-bottom:1px dashed var(--line)}
+.payrow .tm{width:54px;flex-shrink:0;font-size:10.5px;color:#0f766e;font-weight:700}
+.payrow .x{background:#fbeceb;border:0;border-radius:8px;padding:3px 8px;color:#b5392e;font-size:11px;cursor:pointer}
+details.emp{border-top:1px solid var(--line);padding:12px 0}
+details.emp:first-of-type{border-top:0}
+details.emp summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px}
+details.emp summary::-webkit-details-marker{display:none}
+.tint-t{background:#effaf8!important}.tint-r{background:#fdf1f0!important}.tint-g{background:#f0faf3!important}
+@media print{body *{visibility:hidden}#payroll-report,#payroll-report *{visibility:visible}#payroll-report{position:absolute;left:0;top:0;width:100%;border:0}.no-print{display:none!important}}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
@@ -159,18 +192,15 @@ details.card summary::-webkit-details-marker{display:none}
 <!-- ================= DASHBOARD ================= -->
 <div id="page-dashboard" class="page active">
   <div class="hero"><small id="hero-date"></small><div class="hn">NAZ<span>agro</span></div><div class="hs">আপনার খামারের সব হিসাব, এক জায়গায়</div></div>
-  <div class="stat-row">
-    <div class="stat-box"><div class="stat-num" id="d-bulls">0</div><div class="stat-label">ষাঁড়</div></div>
-    <div class="stat-box"><div class="stat-num" id="d-cows">0</div><div class="stat-label">দুধের গাভী</div></div>
-    <div class="stat-box"><div class="stat-num" id="d-goats">0</div><div class="stat-label">ছাগল</div></div>
-    <div class="stat-box"><div class="stat-num" id="d-milk">0 L</div><div class="stat-label">দুধ (মাস)</div></div>
-  </div>
-  <div class="stat-row">
-    <div class="stat-box"><div class="stat-num" id="d-cattle-pl" style="font-size:16px">৳0</div><div class="stat-label">গরুর লাভ-ক্ষতি</div></div>
-    <div class="stat-box"><div class="stat-num" id="d-goat-pl" style="font-size:16px">৳0</div><div class="stat-label">ছাগলের লাভ-ক্ষতি</div></div>
-    <div class="stat-box"><div class="stat-num" id="d-net-pl" style="font-size:16px">৳0</div><div class="stat-label">মোট মুনাফা</div></div>
-  </div>
-  <div id="d-alerts"></div>
+  <div class="tiles">
+  <div class="tile" style="--c:#b5392e"><div class="tic">🐂</div><div class="tn" id="d-bulls">0</div><div class="tl">ষাঁড়</div></div>
+  <div class="tile" style="--c:#2a6496"><div class="tic">🐄</div><div class="tn" id="d-cows">0</div><div class="tl">দুধের গাভী</div></div>
+  <div class="tile" style="--c:#7b5ea7"><div class="tic">🐐</div><div class="tn" id="d-goats">0</div><div class="tl">ছাগল</div></div>
+  <div class="tile" style="--c:#0f766e"><div class="tic">🥛</div><div class="tn" id="d-milk">0 L</div><div class="tl">এ মাসের দুধ</div></div>
+</div>
+<div id="d-extra"></div>
+<div style="display:none"><span id="d-cattle-pl"></span><span id="d-goat-pl"></span><span id="d-net-pl"></span></div>
+<div id="d-alerts"></div>
   <div class="card">
     <h3>🩺 ১৪ দিনের মধ্যে স্বাস্থ্যসেবা</h3>
     <div id="d-health-due"></div>
@@ -311,28 +341,13 @@ details.card summary::-webkit-details-marker{display:none}
 <!-- ================= LABOUR ================= -->
 <div id="page-labour" class="page">
   <div class="subtab-bar">
-    <button class="subtab-btn active" onclick="showSub('labour','employees',this)">কর্মী</button>
-    <button class="subtab-btn" onclick="showSub('labour','attendance',this)">ছুটি ও ওভারটাইম</button>
-    <button class="subtab-btn" onclick="showSub('labour','advances',this)">অগ্রিম</button>
-    <button class="subtab-btn" onclick="showSub('labour','payroll',this)">বেতন হিসাব</button>
+    <button class="subtab-btn active" onclick="showSub('labour','payroll',this)">💳 পে-রোল</button>
+    <button class="subtab-btn" onclick="showSub('labour','employees',this)">👷 কর্মী</button>
   </div>
-  <div id="labour-employees" class="subpage active">
+  <div id="labour-payroll" class="subpage active"><div id="labour-payroll-table"></div></div>
+  <div id="labour-employees" class="subpage">
     <div class="section-header"><h2>কর্মী</h2><button class="btn btn-sm btn-gold" onclick="openEmployeeModal()">+ নতুন কর্মী</button></div>
     <div id="labour-employee-list"></div>
-  </div>
-  <div id="labour-attendance" class="subpage">
-    <div class="section-header"><h2>ছুটি ও ওভারটাইম</h2><button class="btn btn-sm btn-gold" onclick="openAttendanceModal()">+ যোগ</button></div>
-    <div class="small-note" style="margin-bottom:12px">শুধু ব্যতিক্রম লিখুন। যে দিন লেখা নেই, সেদিন কর্মী উপস্থিত ধরা হয়।</div>
-    <div id="labour-attendance-list"></div>
-  </div>
-  <div id="labour-advances" class="subpage">
-    <div class="section-header"><h2>অগ্রিম ও পরিশোধ</h2><button class="btn btn-sm btn-gold" onclick="openAdvanceModal()">+ টাকা দিন</button></div>
-    <div class="small-note" style="margin-bottom:12px">দেওয়া টাকা আগে সবচেয়ে পুরনো বকেয়া মাস মেটায়, বাড়তি অংশ চলতি মাসে যোগ হয়।</div>
-    <div id="labour-advance-list"></div>
-  </div>
-  <div id="labour-payroll" class="subpage">
-    <div class="section-header"><h2>বেতন হিসাব</h2></div>
-    <div id="labour-payroll-table"></div>
   </div>
 </div>
 
@@ -664,21 +679,6 @@ details.card summary::-webkit-details-marker{display:none}
     <div class="form-group"><label>ধরন *</label><select id="at-status" onchange="toggleAttendanceFields()"><option value="Absent">পুরো দিন ছুটি</option><option value="Half-day">আধা দিন ছুটি</option><option value="OT">উপস্থিত + ওভারটাইম</option></select></div>
     <div class="form-group" id="at-ot-group" style="display:none"><label>ওভারটাইম (ঘণ্টা)</label><input type="number" id="at-ot"></div>
     <button class="btn btn-primary" onclick="saveAttendance()">সংরক্ষণ</button>
-  </div>
-</div>
-
-<!-- ================= MODAL: ADVANCE ================= -->
-<div id="modal-advance" class="modal-overlay">
-  <div class="modal">
-    <div class="modal-header"><h3>টাকা দিন (অগ্রিম / পরিশোধ)</h3><button class="modal-close" onclick="closeModal('modal-advance')">✕</button></div>
-    <div class="form-group"><label>কর্মী *</label><select id="ad-employee"></select></div>
-    <div class="two-col">
-      <div class="form-group"><label>তারিখ *</label><input type="date" id="ad-date"></div>
-      <div class="form-group"><label>সময়</label><input type="time" id="ad-time"></div>
-    </div>
-    <div class="form-group"><label>টাকার পরিমাণ (৳) *</label><input type="number" id="ad-amount"></div>
-    <div class="form-group"><label>নোট</label><input type="text" id="ad-note"></div>
-    <button class="btn btn-primary" onclick="saveAdvance()">সংরক্ষণ</button>
   </div>
 </div>
 
@@ -2015,114 +2015,197 @@ function renderEmployees() {
   document.getElementById('labour-employee-list').innerHTML = html;
 }
 
-// ---------- ছুটি / ওভারটাইম ----------
-function empOptions(sel) {
-  sel.innerHTML = '';
-  empSorted().forEach(function(e){ sel.innerHTML += '<option value="'+e.id+'">'+esc(e.name)+(e.status==='inactive'?' (নিষ্ক্রিয়)':'')+'</option>'; });
+// ---------- পে-রোল (v5.73-এর ধাঁচে এক পাতায়: অগ্রিম → মাস → তালিকা → কর্মী → রিপোর্ট) ----------
+var PAY = { month: todayISO().slice(0,7), emp: '', pick: false, done: null, draft: { amount:'', note:'' } };
+function renderAttendance(){}
+function renderAdvances(){}
+function empAvatar(e, sz) {
+  var st = 'width:'+sz+'px;height:'+sz+'px;font-size:'+Math.round(sz*0.42)+'px';
+  return e && e.photo ? '<img class="av" style="'+st+'" src="'+e.photo+'">' : '<div class="av" style="'+st+'">'+esc(((e&&e.name)||'?').charAt(0))+'</div>';
 }
-function toggleAttendanceFields() {
-  document.getElementById('at-ot-group').style.display = document.getElementById('at-status').value==='OT' ? 'block' : 'none';
+function advIn(empId, mk) {
+  return (DB.labour.advances||[]).filter(function(a){ return a.employeeId===empId && a.date.slice(0,7)===mk; }).reduce(function(s,a){ return s+(a.amount||0); },0);
 }
-function openAttendanceModal() {
+function activeEmps() { return DB.labour.employees.filter(function(e){ return e.status!=='inactive'; }); }
+function weekdayBn(d) { return ['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'][new Date(d+'T12:00:00').getDay()]; }
+
+function renderPayForm() {
+  var box = document.getElementById('pay-form'); if(!box) return;
+  var emps = activeEmps(), sel = emps.find(function(e){ return e.id===PAY.emp; }), cm = todayISO().slice(0,7);
+  var h = '<div class="card" style="border:1.5px solid #bfdccc"><div class="nm" style="color:var(--g2);margin-bottom:12px">💰 অগ্রিম / টাকা দিন</div>';
+  h += '<div class="form-group"><label>কর্মী</label><div style="position:relative"><button type="button" class="pick" onclick="PAY.draft.amount=gv(\'pf-amt\');PAY.draft.note=gv(\'pf-note\');PAY.pick=!PAY.pick;renderPayForm()">';
+  h += (sel ? empAvatar(sel,30) : '<div class="av" style="width:30px;height:30px;font-size:14px">👤</div>');
+  h += '<span style="flex:1;text-align:left;color:'+(sel?'var(--ink)':'#999')+'">'+(sel?esc(sel.name):'-- নির্বাচন করুন --')+'</span><span style="color:#999">▾</span></button>';
+  if(PAY.pick){
+    h += '<div class="pickbox">';
+    if(!emps.length) h += '<div class="empty-state" style="padding:14px">কোনো সক্রিয় কর্মী নেই</div>';
+    emps.forEach(function(e){
+      h += '<div class="pickrow" onclick="PAY.emp=\''+e.id+'\';PAY.draft.amount=gv(\'pf-amt\');PAY.draft.note=gv(\'pf-note\');PAY.pick=false;renderPayForm()">'+empAvatar(e,30)+'<div><div style="font-weight:600;font-size:13px">'+esc(e.name)+'</div><div class="sub">এই মাসে নিয়েছে '+fmtMoney(advIn(e.id,cm))+'</div></div></div>';
+    });
+    h += '</div>';
+  }
+  h += '</div></div>';
+  h += '<div class="form-group"><label>পরিমাণ (৳)</label><input type="number" id="pf-amt" placeholder="0" value="'+esc(PAY.draft.amount)+'" style="font-size:22px;font-weight:800;color:#1b7a4a;padding:13px"></div>';
+  h += '<div class="two-col"><div class="form-group"><label>তারিখ</label><input type="date" id="pf-date" value="'+(gv('pf-date')||todayISO())+'"></div><div class="form-group"><label>সময়</label><input type="time" id="pf-time" value="'+(gv('pf-time')||nowHM())+'"></div></div>';
+  h += '<div class="small-note" style="margin:-4px 0 10px;color:#0f766e">টাকা আগে সবচেয়ে পুরনো বকেয়া মাস মেটাবে, বাড়তি অংশ চলতি মাসে যোগ হবে।</div>';
+  h += '<div class="form-group"><label>নোট</label><input type="text" id="pf-note" placeholder="ঐচ্ছিক" value="'+esc(PAY.draft.note)+'"></div>';
+  h += '<button class="btn btn-primary" style="font-size:16px;padding:15px" onclick="saveAdvance()">✓ জমা করুন</button>';
+  if(PAY.done) h += '<div style="margin-top:10px;background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:9px 12px;font-size:12px;color:#166534;font-weight:700">✓ '+esc(PAY.done.name)+' — '+fmtMoney(PAY.done.amount)+' অগ্রিম জমা হয়েছে</div>';
+  box.innerHTML = h + '</div>';
+}
+function gv(id){ var e=document.getElementById(id); return e ? e.value : ''; }
+function saveAdvance() {
+  var amount = parseFloat(gv('pf-amt'))||0, date = gv('pf-date');
+  if(!PAY.emp || !date || amount<=0){ alert('কর্মী ও টাকার পরিমাণ দিন'); return; }
+  DB.labour.advances.push({ id:uid(), employeeId:PAY.emp, date:date, time:gv('pf-time'), amount:amount, note:gv('pf-note').trim() });
+  var e = DB.labour.employees.find(function(x){ return x.id===PAY.emp; });
+  PAY.done = { name: e ? e.name : '', amount: amount }; PAY.emp = ''; PAY.draft = { amount:'', note:'' };
+  save(); renderPayForm(); renderPayBody();
+  setTimeout(function(){ PAY.done = null; renderPayForm(); }, 7000);
+}
+function deleteAdvance(id) {
+  if(!confirm('এই টাকা দেওয়ার এন্ট্রি মুছে ফেলবেন?')) return;
+  DB.labour.advances = DB.labour.advances.filter(function(a){ return a.id!==id; });
+  save(); renderPayBody();
+}
+function shiftPayMonth(n) { var y=+PAY.month.slice(0,4), m=+PAY.month.slice(5,7)+n; while(m<1){m+=12;y--} while(m>12){m-=12;y++} PAY.month = y+'-'+(m<10?'0':'')+m; renderPayBody(); }
+
+function openAttendanceModal(empId) {
   empOptions(document.getElementById('at-employee'));
+  if(empId) document.getElementById('at-employee').value = empId;
   document.getElementById('at-date').value = todayISO();
   document.getElementById('at-status').value = 'Absent';
   document.getElementById('at-ot').value = '';
   toggleAttendanceFields(); openModal('modal-attendance');
 }
+function toggleAttendanceFields() {
+  document.getElementById('at-ot-group').style.display = document.getElementById('at-status').value==='OT' ? 'block' : 'none';
+}
+function empOptions(sel) {
+  sel.innerHTML = '';
+  empSorted().forEach(function(e){ sel.innerHTML += '<option value="'+e.id+'">'+esc(e.name)+(e.status==='inactive'?' (নিষ্ক্রিয়)':'')+'</option>'; });
+}
 function saveAttendance() {
   var employeeId = document.getElementById('at-employee').value, date = document.getElementById('at-date').value;
   if(!employeeId || !date){ alert('কর্মী ও তারিখ দিন'); return; }
   DB.labour.attendance.push({ id:uid(), employeeId:employeeId, date:date, status:document.getElementById('at-status').value, otHours:parseFloat(document.getElementById('at-ot').value)||0 });
-  save(); closeModal('modal-attendance'); renderAttendance(); renderPayroll();
+  save(); closeModal('modal-attendance'); PAY.month = date.slice(0,7); renderPayBody();
 }
 function deleteAttendance(id) {
   if(!confirm('এই এন্ট্রি মুছে ফেলবেন?')) return;
   DB.labour.attendance = DB.labour.attendance.filter(function(a){ return a.id!==id; });
-  save(); renderAttendance(); renderPayroll();
-}
-function renderAttendance() {
-  var sorted = DB.labour.attendance.slice().sort(function(a,b){ return b.date.localeCompare(a.date); });
-  var html = '';
-  if(sorted.length===0) html = '<div class="empty-state">কোনো ছুটি বা ওভারটাইম লেখা নেই। সবাই উপস্থিত ধরা হচ্ছে।</div>';
-  else sorted.forEach(function(r){
-    var e = DB.labour.employees.find(function(x){ return x.id===r.employeeId; });
-    var label = r.status==='OT' ? ('ওভারটাইম · '+bn(r.otHours||0)+' ঘণ্টা') : (r.status==='Half-day' ? 'আধা দিন ছুটি' : 'পুরো দিন ছুটি');
-    html += '<div class="card"><div class="expense-row"><div><div class="nm">'+(e?esc(e.name):'—')+'</div><div class="sub">'+fmtDateBn(r.date)+' · '+label+'</div></div>';
-    html += '<button class="btn btn-sm btn-red" onclick="deleteAttendance(\''+r.id+'\')">মুছুন</button></div></div>';
-  });
-  document.getElementById('labour-attendance-list').innerHTML = html;
+  save(); renderPayBody();
 }
 
-// ---------- অগ্রিম / পরিশোধ ----------
-function openAdvanceModal() {
-  empOptions(document.getElementById('ad-employee'));
-  document.getElementById('ad-date').value = todayISO();
-  document.getElementById('ad-time').value = nowHM();
-  document.getElementById('ad-amount').value = '';
-  document.getElementById('ad-note').value = '';
-  openModal('modal-advance');
-}
-function saveAdvance() {
-  var employeeId = document.getElementById('ad-employee').value, date = document.getElementById('ad-date').value;
-  var amount = parseFloat(document.getElementById('ad-amount').value)||0;
-  if(!employeeId || !date || amount<=0){ alert('কর্মী, তারিখ ও টাকার পরিমাণ দিন'); return; }
-  DB.labour.advances.push({ id:uid(), employeeId:employeeId, date:date, time:document.getElementById('ad-time').value||'', amount:amount, note:document.getElementById('ad-note').value.trim() });
-  save(); closeModal('modal-advance'); renderAdvances(); renderPayroll();
-}
-function deleteAdvance(id) {
-  if(!confirm('এই টাকা দেওয়ার এন্ট্রি মুছে ফেলবেন?')) return;
-  DB.labour.advances = DB.labour.advances.filter(function(a){ return a.id!==id; });
-  save(); renderAdvances(); renderPayroll();
-}
-function renderAdvances() {
-  var sorted = (DB.labour.advances||[]).slice().sort(function(a,b){ return (b.date+' '+(b.time||'')).localeCompare(a.date+' '+(a.time||'')); });
-  var html = '';
-  if(sorted.length===0) html = '<div class="empty-state">এখনও কোনো টাকা দেওয়া হয়নি।</div>';
-  else sorted.forEach(function(r){
-    var e = DB.labour.employees.find(function(x){ return x.id===r.employeeId; });
-    html += '<div class="card"><div class="expense-row"><div><div class="nm">'+(e?esc(e.name):'—')+'</div><div class="sub">'+fmtDateBn(r.date)+(r.time?' · '+bn(r.time):'')+(r.note?' · '+esc(r.note):'')+'</div></div>';
-    html += '<div style="text-align:right"><div class="expense-amount" style="color:#b9591a">'+fmtMoney(r.amount)+'</div>';
-    html += '<button class="btn btn-sm btn-red" style="margin-top:6px" onclick="deleteAdvance(\''+r.id+'\')">মুছুন</button></div></div></div>';
-  });
-  document.getElementById('labour-advance-list').innerHTML = html;
-}
-
-// ---------- বেতন হিসাব ----------
 function renderPayroll() {
   var box = document.getElementById('labour-payroll-table'); if(!box) return;
-  var emps = empSorted(), html = '';
-  if(emps.length===0){ box.innerHTML = '<div class="empty-state">বেতন হিসাব দেখতে আগে কর্মী যোগ করুন।</div>'; return; }
-  var totalDue = 0, curTotal = 0, cm = todayISO().slice(0,7);
-  var blocks = emps.map(function(e){
-    var L = empLedger(e); totalDue += L.dueNow;
-    var cur = computeEmployeeMonthPay(e, cm); if(e.status!=='inactive') curTotal += cur.fullTotal;
-    var h = '<details class="card'+(e.status==='inactive'?' inactive':'')+'"><summary><div class="who">';
-    h += e.photo ? '<img class="av" src="'+e.photo+'">' : '<div class="av">'+esc((e.name||'?').charAt(0))+'</div>';
-    h += '<div><div class="nm">'+esc(e.name)+'</div><div class="sub">'+(ROLE_BN[e.role]||esc(e.role))+'</div></div></div>'+dueHtml(L.dueNow)+'</summary>';
+  if(!document.getElementById('pay-form')) box.innerHTML = '<div id="pay-form"></div><div id="pay-body"></div>';
+  renderPayForm(); renderPayBody();
+}
+function renderPayBody() {
+  var box = document.getElementById('pay-body'); if(!box) return;
+  var mk = PAY.month, cm = todayISO().slice(0,7), emps = empSorted().filter(function(e){ return allMonthsForEmployee(e).indexOf(mk)>=0 || advIn(e.id,mk)>0; });
+  var pays = (DB.labour.advances||[]).filter(function(a){ return a.date.slice(0,7)===mk; });
+  var totalMonth = 0, totalDue = 0, paidMonth = pays.reduce(function(s,a){ return s+(a.amount||0); },0);
+  var data = emps.map(function(e){
+    var p = computeEmployeeMonthPay(e, mk), L = empLedger(e);
+    totalMonth += p.fullTotal; totalDue += Math.max(0, L.dueNow);
+    return { e:e, p:p, L:L, paid: advIn(e.id, mk) };
+  });
+  var h = '<div class="card" style="padding:12px"><div class="expense-row"><button class="btn btn-sm btn-green" style="background:var(--gl);color:var(--g2)" onclick="shiftPayMonth(-1)">◀</button>';
+  h += '<div style="text-align:center"><div class="nm" style="font-size:16px">'+mLblBn(mk)+'</div><div class="sub" style="'+(mk===cm?'color:#16a34a;font-weight:700':'')+'">'+(mk===cm?'চলতি মাস':(mk>cm?'আগামী মাস':'আগের মাস'))+'</div></div>';
+  h += '<button class="btn btn-sm btn-green" style="background:var(--gl);color:var(--g2)" onclick="shiftPayMonth(1)">▶</button></div>';
+  if(mk!==cm) h += '<button class="btn btn-sm btn-gray" style="display:block;margin:8px auto 0" onclick="PAY.month=\''+cm+'\';renderPayBody()">↩ চলতি মাসে ফিরুন</button>';
+  h += '<div class="stat-row" style="margin:12px 0 0"><div class="stat-box tint-t"><div class="sub">মাসের বেতন</div><div class="stat-num" style="font-size:15px;color:#0f766e">'+fmtMoney(totalMonth)+'</div></div>';
+  h += '<div class="stat-box tint-r"><div class="sub">এ মাসে দেওয়া</div><div class="stat-num" style="font-size:15px;color:#b91c1c">'+fmtMoney(paidMonth)+'</div></div>';
+  h += '<div class="stat-box tint-g"><div class="sub">মোট বকেয়া</div><div class="stat-num" style="font-size:15px;color:#166534">'+fmtMoney(totalDue)+'</div></div></div></div>';
+
+  // এ মাসের অগ্রিম/টাকা দেওয়া
+  h += '<div class="card"><div class="expense-row" style="margin-bottom:8px"><div class="nm" style="color:var(--g2)">💰 এ মাসে টাকা দেওয়া — কে, কবে</div><b style="color:#b91c1c">'+fmtMoney(paidMonth)+'</b></div>';
+  if(!pays.length) h += '<div class="empty-state" style="padding:14px">এ মাসে কোনো টাকা দেওয়া হয়নি</div>';
+  else {
+    var days = pays.map(function(a){ return a.date; }).filter(function(d,i,a){ return a.indexOf(d)===i; }).sort().reverse();
+    days.forEach(function(ds){
+      var list = pays.filter(function(a){ return a.date===ds; }).sort(function(a,b){ return (b.time||'').localeCompare(a.time||''); });
+      h += '<div style="margin-bottom:8px"><div class="dayhead"><span>'+weekdayBn(ds)+', '+fmtDateBn(ds)+'</span><span>'+fmtMoney(list.reduce(function(s,a){ return s+a.amount; },0))+'</span></div>';
+      list.forEach(function(a){
+        var e = DB.labour.employees.find(function(x){ return x.id===a.employeeId; });
+        h += '<div class="payrow"><span class="tm">'+(a.time?bn(a.time):'—')+'</span>'+empAvatar(e,24)+'<span style="flex:1;min-width:0">'+(e?esc(e.name):'(মুছে ফেলা কর্মী)')+(a.note?'<span class="sub"> · '+esc(a.note)+'</span>':'')+'</span><b>'+fmtMoney(a.amount)+'</b><button class="x" onclick="deleteAdvance(\''+a.id+'\')">✕</button></div>';
+      });
+      h += '</div>';
+    });
+  }
+  h += '</div>';
+
+  // কর্মী অনুযায়ী হিসাব
+  h += '<div class="card" style="padding:14px 12px"><div class="nm" style="color:var(--g2);margin-bottom:3px">কর্মীদের হিসাব</div><div class="small-note" style="margin:0 0 10px">সবাই প্রতিদিন উপস্থিত ধরা হয়। ছুটি বা ওভারটাইম হলে কর্মীর কার্ড খুলে যোগ করুন।</div>';
+  if(!data.length) h += '<div class="empty-state">এই মাসে কোনো কর্মী নেই। "কর্মী" ট্যাবে যোগ করুন।</div>';
+  data.forEach(function(d){
+    var e = d.e, p = d.p, recs = DB.labour.attendance.filter(function(a){ return a.employeeId===e.id && a.date.slice(0,7)===mk; }).sort(function(a,b){ return a.date.localeCompare(b.date); });
+    h += '<details class="emp'+(e.status==='inactive'?' inactive':'')+'"><summary><div class="who">'+empAvatar(e,38)+'<div style="min-width:0"><div class="nm">'+esc(e.name)+'</div><div class="sub">আয় <b style="color:#0f766e">'+fmtMoney(p.fullTotal)+'</b> · দেওয়া '+fmtMoney(d.paid)+'</div></div></div>'+dueHtml(d.L.dueNow)+'</summary>';
+    h += '<div style="margin-top:10px"><div class="kv"><span>উপস্থিত দিন</span><span>'+bn(Math.max(0,p.activeFull-Math.min(p.leave,p.activeFull)))+' / '+bn(p.totalDays)+'</span></div>';
+    h += '<div class="kv"><span>ছুটি (বেতনসহ '+bn(p.free)+' দিন)</span><span>'+bn(p.leave)+' দিন</span></div>';
+    if(p.extra>0) h += '<div class="kv"><span>বাড়তি ছুটির কাটা ('+bn(p.extra)+' দিন)</span><span style="color:#b5392e">−'+fmtMoney(p.deduction)+'</span></div>';
+    if(p.otPay>0) h += '<div class="kv"><span>ওভারটাইম ('+bn(p.otHours)+' ঘণ্টা)</span><span>+'+fmtMoney(p.otPay)+'</span></div>';
+    if(p.bonusEarned>0) h += '<div class="kv"><span>ছুটি না নেওয়ার বোনাস</span><span style="color:#1b7a4a">+'+fmtMoney(p.bonusEarned)+'</span></div>';
+    if(p.bonusPending>0) h += '<div class="kv"><span>ছুটি না নিলে বোনাস (মাস শেষে)</span><span style="color:#1b7a4a">'+fmtMoney(p.bonusPending)+'</span></div>';
+    recs.forEach(function(r){
+      var lb = r.status==='OT' ? 'ওভারটাইম '+bn(r.otHours||0)+' ঘণ্টা' : (r.status==='Half-day' ? 'আধা দিন ছুটি' : 'পুরো দিন ছুটি');
+      h += '<div class="payrow" style="font-size:12px"><span class="tm" style="width:auto">'+fmtDateBn(r.date)+'</span><span style="flex:1">'+lb+'</span><button class="x" onclick="deleteAttendance(\''+r.id+'\')">✕</button></div>';
+    });
+    h += '<button class="btn btn-sm btn-orange" style="margin-top:8px;width:100%" onclick="openAttendanceModal(\''+e.id+'\')">+ ছুটি / ওভারটাইম লিখুন</button></div>';
     h += '<table class="mtable"><tr><th>মাস</th><th>পাওনা</th><th>দেওয়া</th><th>অবস্থা</th></tr>';
-    L.rows.slice().reverse().forEach(function(r){
+    d.L.rows.slice().reverse().forEach(function(r){
       var need = Math.round(r.p.fullTotal), rem = need - Math.round(r.paid);
       var st = rem<=0 ? '<span class="badge badge-green">মিটেছে</span>' : (r.paid>0 ? '<span class="badge badge-orange">আংশিক</span>' : '<span class="badge badge-red">বাকি</span>');
       h += '<tr><td>'+mLblBn(r.mk)+(r.p.isCur?' <span class="sub">(চলছে)</span>':'')+'</td><td>'+fmtMoney(need)+'</td><td>'+fmtMoney(r.paid)+'</td><td>'+st+'</td></tr>';
     });
-    h += '</table>';
-    var p = cur;
-    if(e.status!=='inactive' || p.activeNow>0){
-      h += '<div style="margin-top:12px"><div class="sub" style="font-weight:700;margin-bottom:4px">চলতি মাস ('+mLblBn(cm)+')</div>';
-      h += '<div class="kv"><span>উপস্থিত দিন (আজ পর্যন্ত)</span><span>'+bn(p.activeNow - Math.min(p.leave,p.activeNow))+' / '+bn(p.totalDays)+'</span></div>';
-      h += '<div class="kv"><span>ছুটি (বেতনসহ '+bn(p.free)+' দিন)</span><span>'+bn(p.leave)+' দিন</span></div>';
-      if(p.extra>0) h += '<div class="kv"><span>বাড়তি ছুটির কাটা ('+bn(p.extra)+' দিন)</span><span style="color:#b5392e">−'+fmtMoney(p.deduction)+'</span></div>';
-      if(p.otPay>0) h += '<div class="kv"><span>ওভারটাইম ('+bn(p.otHours)+' ঘণ্টা)</span><span>+'+fmtMoney(p.otPay)+'</span></div>';
-      if(p.bonusPending>0) h += '<div class="kv"><span>ছুটি না নিলে বোনাস (মাস শেষে)</span><span style="color:#1b7a4a">'+fmtMoney(p.bonusPending)+'</span></div>';
-      h += '<div class="kv"><span>আজ পর্যন্ত অর্জিত</span><b>'+fmtMoney(p.totalEarned)+'</b></div></div>';
-    }
-    return h + '</details>';
+    h += '</table></details>';
   });
-  html = '<div class="stat-row"><div class="stat-box"><div class="stat-num" style="font-size:17px;color:#b5392e">'+fmtMoney(Math.max(0,totalDue))+'</div><div class="stat-label">মোট এখন পাওনা</div></div>';
-  html += '<div class="stat-box"><div class="stat-num" style="font-size:17px">'+fmtMoney(curTotal)+'</div><div class="stat-label">চলতি মাসের বেতন</div></div></div>';
-  box.innerHTML = html + blocks.join('');
+  h += '</div>';
+
+  // রিপোর্ট (প্রিন্ট)
+  h += '<div class="card" id="payroll-report"><div class="no-print" style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn btn-sm btn-gray" onclick="window.print()">🖨️ রিপোর্ট প্রিন্ট</button></div>';
+  h += '<div style="text-align:center;margin-bottom:10px"><div class="nm" style="font-size:16px">NAZ agro — মাসিক পে-রোল রিপোর্ট</div><div class="sub">'+mLblBn(mk)+'</div></div><div style="overflow-x:auto"><table class="datatable"><tr><th>নাম</th><th>উপস্থিত</th><th>ছুটি</th><th>কাটা</th><th>বোনাস/OT</th><th>মোট আয়</th><th>দেওয়া</th><th>বকেয়া</th></tr>';
+  data.forEach(function(d){
+    var p = d.p;
+    h += '<tr><td>'+esc(d.e.name)+'</td><td>'+bn(Math.max(0,p.activeFull-Math.min(p.leave,p.activeFull)))+'</td><td>'+bn(p.leave)+'</td><td>'+fmtMoney(p.deduction)+'</td><td>'+fmtMoney(p.bonusEarned+p.otPay)+'</td><td><b>'+fmtMoney(p.fullTotal)+'</b></td><td>'+fmtMoney(d.paid)+'</td><td><b>'+fmtMoney(Math.max(0,d.L.dueNow))+'</b></td></tr>';
+  });
+  h += '<tr style="font-weight:700;background:var(--gl)"><td colspan="5">মোট</td><td>'+fmtMoney(totalMonth)+'</td><td>'+fmtMoney(paidMonth)+'</td><td>'+fmtMoney(totalDue)+'</td></tr></table></div></div>';
+  box.innerHTML = h;
 }
+
+// ---------- হোম ড্যাশবোর্ডের অতিরিক্ত ভিজ্যুয়াল ----------
+function renderDashExtras() {
+  var box = document.getElementById('d-extra'); if(!box) return;
+  var cat = DB.cattle.animals.filter(function(a){ return a.status==='active'; }), bulls = cat.filter(function(a){ return a.type==='bull'; }).length;
+  var cows = cat.filter(function(a){ return a.type==='cow'; }).length, goats = DB.goats.animals.filter(function(a){ return a.status==='active'; }).length;
+  var tot = Math.max(1, cat.length + goats), oth = cat.length - bulls - cows;
+  var seg = [['ষাঁড়',bulls,'#b5392e'],['গাভী',cows,'#2a6496'],['অন্য গরু',oth,'#6b9bc3'],['ছাগল',goats,'#7b5ea7']].filter(function(x){ return x[1]>0; });
+  var h = '<div class="card"><h3>🐾 খামারের গঠন <span class="sub" style="font-weight:400">· মোট '+(cat.length+goats)+' টি</span></h3>';
+  if(cat.length+goats===0) h += '<div class="empty-state" style="padding:12px">এখনও কোনো পশু যোগ করা হয়নি</div>';
+  else {
+    h += '<div class="stackbar">'+seg.map(function(x){ return '<div style="width:'+(x[1]/tot*100)+'%;background:'+x[2]+'"></div>'; }).join('')+'</div><div class="chips">';
+    h += seg.map(function(x){ return '<span class="badge" style="background:'+x[2]+'18;color:'+x[2]+'">'+x[0]+' '+x[1]+'</span>'; }).join('')+'</div>';
+  }
+  h += '</div>';
+  var today = todayISO(), bars = [], mx = 1, sum = 0;
+  for(var i=6;i>=0;i--){
+    var dt = new Date(today+'T12:00:00'); dt.setDate(dt.getDate()-i);
+    var ds = dt.getFullYear()+'-'+('0'+(dt.getMonth()+1)).slice(-2)+'-'+('0'+dt.getDate()).slice(-2);
+    var v = DB.cattle.milk.filter(function(m){ return m.date===ds; }).reduce(function(s,m){ return s+(m.morning||0)+(m.evening||0); },0);
+    bars.push({ l:['রবি','সোম','মঙ্গল','বুধ','বৃহ','শুক্র','শনি'][dt.getDay()], v:v }); mx = Math.max(mx, v); sum += v;
+  }
+  h += '<div class="card"><h3>🥛 দুধ — গত ৭ দিন <span class="sub" style="font-weight:400">· মোট '+Math.round(sum)+' লি.</span></h3><div class="spark">';
+  h += bars.map(function(b,i){ return '<div class="sp"><div class="spv">'+(b.v?Math.round(b.v):'')+'</div><div class="spb'+(i===6?' on':'')+'" style="height:'+Math.max(4,b.v/mx*70)+'px"></div><div class="spl">'+b.l+'</div></div>'; }).join('')+'</div></div>';
+  var cf = cattleFinance(), gf = goatFinance(), net = cf.profit + gf.profit - labourCost() - overheadCost(), due = 0;
+  DB.labour.employees.forEach(function(e){ due += Math.max(0, empLedger(e).dueNow); });
+  function pill(l, v, ic){ var up = v>=0; return '<div class="pill '+(up?'up':'dn')+'"><div class="pi">'+ic+'</div><div><div class="sub">'+l+'</div><div class="pv">'+(up?'▲ ':'▼ ')+fmtMoney(Math.abs(v))+'</div></div></div>'; }
+  h += '<div class="pills">'+pill('গরুর লাভ-ক্ষতি', cf.profit, '🐄')+pill('ছাগলের লাভ-ক্ষতি', gf.profit, '🐐')+pill('মোট মুনাফা', net, '📈')+'<div class="pill wn"><div class="pi">👥</div><div><div class="sub">কর্মীর বকেয়া বেতন</div><div class="pv">'+fmtMoney(due)+'</div></div></div></div>';
+  box.innerHTML = h;
+}
+var _rd0 = renderDashboard;
+renderDashboard = function(){ _rd0(); try{ renderDashExtras(); }catch(e){} };
 
 // ---------- সাজসজ্জা: বাংলা সংখ্যা ও আজকের তারিখ ----------
 (function(){
