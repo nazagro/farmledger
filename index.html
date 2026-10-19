@@ -190,6 +190,29 @@ details.emp summary::-webkit-details-marker{display:none}
 .mealtbl{display:grid;grid-template-columns:1.1fr 1.2fr 1fr 1fr;gap:6px 8px;margin-top:12px;font-size:12px;text-align:center;align-items:center}
 .mealtbl>div:nth-child(-n+4){color:var(--mut);font-weight:700;font-size:11px}
 .mealtbl .ml{text-align:left;font-weight:700;color:var(--g2)}
+.ainfo{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.ainfo>div{background:#f6f8f5;border-radius:10px;padding:6px 8px;min-width:0}
+.ainfo span{display:block;font-size:10px;color:var(--mut);line-height:1.25}
+.ainfo b{display:block;font-size:12.5px;word-break:break-word}
+.pickbtn{border:1px solid var(--line);border-radius:14px;background:#fafbf9;padding:8px 10px;cursor:pointer}
+.pickbtn-in{display:flex;align-items:center;gap:10px}
+.pkrow{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:14px;margin-bottom:8px;background:#fff;cursor:pointer}
+.pkrow.on{border-color:var(--g);background:var(--gl)}
+.pkrow.dim{opacity:.72;background:#fafaf8}
+#modal-pick{z-index:260}
+#imgview{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.95);align-items:center;justify-content:center}
+#imgview.on{display:flex}
+#imgview img{max-width:100%;max-height:100%;object-fit:contain;touch-action:pinch-zoom}
+.ivx{position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.18);color:#fff;font-size:18px}
+.ivh{position:absolute;bottom:calc(18px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:rgba(255,255,255,.6);font-size:11px}
+img{cursor:zoom-in}
+.alrt{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border-radius:12px;margin-bottom:7px;font-size:12.5px;border-left:4px solid}
+.alrt.r{background:#fdf3f2;border-color:#e0675d}.alrt.o{background:#fff6ea;border-color:#e9a24d}.alrt.y{background:#fdf9e8;border-color:#e3c95c}
+.mini2g{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mini2{background:#f6f8f5;border-radius:14px;padding:10px 12px}
+.mini2 .mv{font-weight:800;font-size:16px;margin-top:2px}
+.lcards{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%}
+.lcard{display:flex;gap:8px;align-items:center;background:#f6f8f5;border-radius:12px;padding:6px 8px;cursor:pointer;min-width:0}
 @media print{body *{visibility:hidden}#payroll-report,#payroll-report *{visibility:visible}#payroll-report{position:absolute;left:0;top:0;width:100%;border:0}.no-print{display:none!important}}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -226,6 +249,7 @@ details.emp summary::-webkit-details-marker{display:none}
   <div class="tile" style="--c:#7b5ea7"><div class="tic">🐐</div><div class="tn" id="d-goats">0</div><div class="tl">ছাগল</div></div>
   <div class="tile" style="--c:#0f766e"><div class="tic">🥛</div><div class="tn" id="d-milk">0 L</div><div class="tl">এ মাসের দুধ</div></div>
 </div>
+<div id="d-alerts2"></div>
 <div id="d-extra"></div>
 <div style="display:none"><span id="d-cattle-pl"></span><span id="d-goat-pl"></span><span id="d-net-pl"></span></div>
 <div id="d-alerts"></div>
@@ -240,7 +264,7 @@ details.emp summary::-webkit-details-marker{display:none}
   <div class="card">
     <h3>🥛 দুধ দেওয়ার অবস্থা</h3>
     <div id="d-milking"></div>
-    <div class="small-note">Gold = last 60-day dry period before next expected calving.</div>
+    <div class="small-note">সোনালী অংশ = পরের প্রসবের আগের শেষ ৬০ দিন (দুধ শুকানোর সময়)।</div>
   </div>
 </div>
 
@@ -267,7 +291,7 @@ details.emp summary::-webkit-details-marker{display:none}
       <button class="filter-btn" onclick="filterAnimals('cattle','bull',this)">ষাঁড়</button>
       <button class="filter-btn" onclick="filterAnimals('cattle','cow',this)">Cows</button>
     </div>
-    <div class="card" style="padding:12px"><div class="nm" style="font-size:13px;color:var(--g2);margin-bottom:8px">🌳 বংশধারা দেখুন</div><select id="cattle-lin-sel" onchange="setLineage('cattle')" class="search-box" style="margin-bottom:8px"></select><div class="filter-row" id="cattle-lin-modes" style="display:none;margin-bottom:6px"><button class="filter-btn" data-m="up" onclick="setLinMode('cattle','up')">⬆ পূর্বপুরুষ</button><button class="filter-btn active" data-m="both" onclick="setLinMode('cattle','both')">🌳 সম্পূর্ণ</button><button class="filter-btn" data-m="down" onclick="setLinMode('cattle','down')">⬇ বংশধর</button></div><div id="cattle-lin-box"></div></div><input type="text" class="search-box" placeholder="🔍 Search..." oninput="searchAnimals('cattle',this.value)">
+    <div class="card" style="padding:12px"><div class="nm" style="font-size:13px;color:var(--g2);margin-bottom:8px">🌳 বংশধারা দেখুন</div><div id="cattle-lin-btn" class="pickbtn" style="margin-bottom:8px" onclick="openPicker('lin','cattle')"></div><select id="cattle-lin-sel" style="display:none" onchange="setLineage('cattle')"></select><div class="filter-row" id="cattle-lin-modes" style="display:none;margin-bottom:6px"><button class="filter-btn" data-m="up" onclick="setLinMode('cattle','up')">⬆ পূর্বপুরুষ</button><button class="filter-btn active" data-m="both" onclick="setLinMode('cattle','both')">🌳 সম্পূর্ণ</button><button class="filter-btn" data-m="down" onclick="setLinMode('cattle','down')">⬇ বংশধর</button></div><div id="cattle-lin-box"></div></div><input type="text" class="search-box" placeholder="🔍 Search..." oninput="searchAnimals('cattle',this.value)">
     <div id="cattle-animal-list"></div>
   </div>
 
@@ -337,7 +361,7 @@ details.emp summary::-webkit-details-marker{display:none}
       <button class="filter-btn" onclick="filterAnimals('goats','doe',this)">Does</button>
       <button class="filter-btn" onclick="filterAnimals('goats','kid',this)">Kids</button>
     </div>
-    <div class="card" style="padding:12px"><div class="nm" style="font-size:13px;color:var(--g2);margin-bottom:8px">🌳 বংশধারা দেখুন</div><select id="goats-lin-sel" onchange="setLineage('goats')" class="search-box" style="margin-bottom:8px"></select><div class="filter-row" id="goats-lin-modes" style="display:none;margin-bottom:6px"><button class="filter-btn" data-m="up" onclick="setLinMode('goats','up')">⬆ পূর্বপুরুষ</button><button class="filter-btn active" data-m="both" onclick="setLinMode('goats','both')">🌳 সম্পূর্ণ</button><button class="filter-btn" data-m="down" onclick="setLinMode('goats','down')">⬇ বংশধর</button></div><div id="goats-lin-box"></div></div><input type="text" class="search-box" placeholder="🔍 Search..." oninput="searchAnimals('goats',this.value)">
+    <div class="card" style="padding:12px"><div class="nm" style="font-size:13px;color:var(--g2);margin-bottom:8px">🌳 বংশধারা দেখুন</div><div id="goats-lin-btn" class="pickbtn" style="margin-bottom:8px" onclick="openPicker('lin','goats')"></div><select id="goats-lin-sel" style="display:none" onchange="setLineage('goats')"></select><div class="filter-row" id="goats-lin-modes" style="display:none;margin-bottom:6px"><button class="filter-btn" data-m="up" onclick="setLinMode('goats','up')">⬆ পূর্বপুরুষ</button><button class="filter-btn active" data-m="both" onclick="setLinMode('goats','both')">🌳 সম্পূর্ণ</button><button class="filter-btn" data-m="down" onclick="setLinMode('goats','down')">⬇ বংশধর</button></div><div id="goats-lin-box"></div></div><input type="text" class="search-box" placeholder="🔍 Search..." oninput="searchAnimals('goats',this.value)">
     <div id="goats-animal-list"></div>
   </div>
 
@@ -480,63 +504,63 @@ details.emp summary::-webkit-details-marker{display:none}
 <div id="modal-animal" class="modal-overlay">
   <div class="modal">
     <div class="modal-header"><h3 id="animal-modal-title">Add Animal</h3><button class="modal-close" onclick="closeModal('modal-animal')">✕</button></div>
-    <div class="form-group"><label>Photo</label>
+    <div class="form-group"><label>ছবি</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" class="btn btn-sm btn-blue" onclick="document.getElementById('an-photo-camera').click()">📷 Take Photo</button>
-        <button type="button" class="btn btn-sm btn-gray" onclick="document.getElementById('an-photo-gallery').click()">🖼️ Choose from Gallery</button>
+        <button type="button" class="btn btn-sm btn-blue" onclick="document.getElementById('an-photo-camera').click()">📷 ছবি তুলুন</button>
+        <button type="button" class="btn btn-sm btn-gray" onclick="document.getElementById('an-photo-gallery').click()">🖼️ গ্যালারি থেকে</button>
       </div>
       <input type="file" id="an-photo-camera" accept="image/*" capture="environment" style="display:none" onchange="previewPhoto(this,'an-photo-preview')">
       <input type="file" id="an-photo-gallery" accept="image/*" style="display:none" onchange="previewPhoto(this,'an-photo-preview')">
       <img id="an-photo-preview" class="photo-preview" style="display:none">
     </div>
-    <div class="form-group"><label>Tag / ID *</label><input type="text" id="an-tag" placeholder="e.g. C-01"></div>
-    <div class="form-group"><label>Type *</label><select id="an-type"></select></div>
-    <div class="form-group"><label>Name</label><input type="text" id="an-name"></div>
-    <div class="form-group"><label>Breed</label><input type="text" id="an-breed"></div>
+    <div class="form-group"><label>ট্যাগ / আইডি *</label><input type="text" id="an-tag" placeholder="e.g. C-01"></div>
+    <div class="form-group"><label>ধরন *</label><select id="an-type"></select></div>
+    <div class="form-group"><label>নাম</label><input type="text" id="an-name"></div>
+    <div class="form-group"><label>জাত</label><input type="text" id="an-breed"></div>
 
     <div class="form-group">
-      <label>How did you get this animal? *</label>
+      <label>পশুটি কীভাবে এলো? *</label>
       <div class="sire-toggle">
-        <button type="button" id="origin-mode-bornhere" class="active" onclick="setOriginMode('bornhere')">Born on my farm</button>
-        <button type="button" id="origin-mode-bought" onclick="setOriginMode('bought')">Bought / Acquired</button>
+        <button type="button" id="origin-mode-bornhere" class="active" onclick="setOriginMode('bornhere')">খামারে জন্ম</button>
+        <button type="button" id="origin-mode-bought" onclick="setOriginMode('bought')">কেনা / সংগ্রহ</button>
       </div>
     </div>
     <div id="origin-bornhere-block">
-      <div class="form-group"><label>Date of birth</label><input type="date" id="an-dob"></div>
-      <div class="form-group"><label>Birth weight (kg)</label><input type="number" id="an-birthweight"></div>
+      <div class="form-group"><label>জন্ম তারিখ</label><input type="date" id="an-dob"></div>
+      <div class="form-group"><label>জন্মের ওজন (কেজি)</label><input type="number" id="an-birthweight"></div>
     </div>
     <div id="origin-bought-block" style="display:none">
-      <div class="form-group"><label>Acquired on *</label><input type="date" id="an-acquired-date"></div>
+      <div class="form-group"><label>কেনার তারিখ *</label><input type="date" id="an-acquired-date"></div>
       <div class="two-col">
-        <div class="form-group"><label>Weight at purchase (kg)</label><input type="number" id="an-acquired-weight"></div>
-        <div class="form-group"><label>Cost (৳)</label><input type="number" id="an-acquired-cost"></div>
+        <div class="form-group"><label>কেনার সময় ওজন (কেজি)</label><input type="number" id="an-acquired-weight"></div>
+        <div class="form-group"><label>দাম (৳)</label><input type="number" id="an-acquired-cost"></div>
       </div>
-      <div class="small-note">If you happen to know its birth date/weight too, you can still add those:</div>
+      <div class="small-note">জন্ম তারিখ বা জন্মের ওজন জানা থাকলে এখানে দিতে পারেন:</div>
       <div class="two-col">
-        <div class="form-group"><label>Date of birth</label><input type="date" id="an-dob-bought"></div>
-        <div class="form-group"><label>Birth weight (kg)</label><input type="number" id="an-birthweight-bought"></div>
+        <div class="form-group"><label>জন্ম তারিখ</label><input type="date" id="an-dob-bought"></div>
+        <div class="form-group"><label>জন্মের ওজন (কেজি)</label><input type="number" id="an-birthweight-bought"></div>
       </div>
     </div>
 
-    <div class="form-group"><label>Mother (if known)</label><select id="an-dam" onchange="onAnimalDamOrSireChange()"></select></div>
+    <div class="form-group"><label>মা (জানা থাকলে)</label><div id="an-dam-pick" class="pickbtn" onclick="openPicker('dam',gv('an-species'))"></div><select id="an-dam" style="display:none" onchange="onAnimalDamOrSireChange()"></select></div>
     <div class="form-group">
-      <label>Father (if known)</label>
+      <label>বাবা (জানা থাকলে)</label>
       <div class="sire-toggle">
-        <button type="button" id="an-sire-mode-internal" class="active" onclick="setAnimalSireMode('internal')">Home bred</button>
-        <button type="button" id="an-sire-mode-external" onclick="setAnimalSireMode('external')">AI bull</button>
+        <button type="button" id="an-sire-mode-internal" class="active" onclick="setAnimalSireMode('internal')">খামারের ষাঁড়</button>
+        <button type="button" id="an-sire-mode-external" onclick="setAnimalSireMode('external')">এআই / বাইরের ষাঁড়</button>
       </div>
       <div id="an-sire-internal-block">
-        <select id="an-sire" onchange="onAnimalDamOrSireChange()"></select>
+        <div id="an-sire-pick" class="pickbtn" onclick="openPicker('sire',gv('an-species'))"></div><select id="an-sire" style="display:none" onchange="onAnimalDamOrSireChange()"></select>
         <div id="an-sire-warning" class="small-note"></div>
       </div>
       <div id="an-sire-external-block" style="display:none" class="two-col">
-        <input type="text" id="an-ext-sire-id" placeholder="AI bull ID">
-        <input type="text" id="an-ext-sire-breed" placeholder="Breed (optional)">
+        <input type="text" id="an-ext-sire-id" placeholder="এআই ষাঁড়ের আইডি">
+        <input type="text" id="an-ext-sire-breed" placeholder="জাত (ঐচ্ছিক)">
       </div>
     </div>
-    <div class="form-group"><label>Notes</label><textarea id="an-notes"></textarea></div>
+    <div class="form-group"><label>নোট</label><textarea id="an-notes"></textarea></div>
     <input type="hidden" id="an-species"><input type="hidden" id="an-edit-id"><input type="hidden" id="an-edit-status">
-    <button class="btn btn-primary" onclick="saveAnimal()">Save Animal</button>
+    <button class="btn btn-primary" onclick="saveAnimal()">সংরক্ষণ</button>
   </div>
 </div>
 
@@ -663,6 +687,7 @@ details.emp summary::-webkit-details-marker{display:none}
 </div>
 
 <div id="modal-nu" class="modal-overlay"><div class="modal" id="nu-box"></div></div>
+<div id="modal-pick" class="modal-overlay"><div class="modal" id="pk-box"></div></div>
 
 <!-- ================= MODAL: SALE/WEIGHT ================= -->
 <div id="modal-sale" class="modal-overlay">
@@ -1096,7 +1121,7 @@ function renderAnimals(species) {
   else list.forEach(function(a){
     var cardClass = a.type === 'cow' ? 'cow' : (a.type === 'bull' ? 'bull' : 'goat');
     html += '<div class="animal-card '+cardClass+'" onclick="viewAnimal(\''+species+'\',\''+a.id+'\')">';
-    html += a.photo ? '<img class="animal-thumb" src="'+a.photo+'">' : '<div class="animal-thumb-placeholder">'+(species==='cattle'?'🐄':'🐐')+'</div>';
+    html += aPhoto(species,a) ? '<img class="animal-thumb" src="'+aPhoto(species,a)+'">' : '<div class="animal-thumb-placeholder">'+(species==='cattle'?'🐄':'🐐')+'</div>';
     html += '<div style="flex:1"><span class="animal-tag tag-'+a.type+'">'+typeLabel(species,a.type)+'</span>';
     html += '<div class="animal-name">'+a.tag+(a.name?' – '+a.name:'')+'</div>';
     var meta = [];
@@ -1107,6 +1132,7 @@ function renderAnimals(species) {
       else if(a.status==='deceased') meta.push('Deceased'+(a.deceasedDate?' '+a.deceasedDate:''));
     }
     if(meta.length) html += '<div class="animal-meta">'+meta.join(' · ')+'</div>';
+    html += animalInfoHtml(species, a);
     html += '</div></div>';
   });
   document.getElementById(species+'-animal-list').innerHTML = html;
@@ -1186,7 +1212,7 @@ function viewAnimal(species, id) {
     else {
       html += '<div style="font-size:12px">Calved: '+milkRow.start+' · Days in milk: <b>'+milkRow.daysInMilk+'</b></div>';
       if(milkRow.dryOff) html += '<div style="font-size:12px">Dry-off date: <b>'+milkRow.dryOff+'</b></div>';
-      else html += '<div style="font-size:12px;color:#888">Not yet rebred — dry-off date unknown</div>';
+      else html += '<div style="font-size:12px;color:#888">আবার প্রজনন হয়নি — dry-off date unknown</div>';
     }
     var myMilk = DB.cattle.milk.filter(function(m){ return m.animalId===id; });
     if(myMilk.length){
@@ -2300,6 +2326,17 @@ function linCompute(sp) {
   }
   if(L.mode!=='down') up(id, '');
   if(L.mode!=='up') down(id, 1);
+  if(L.mode==='both') {
+    var me = findAnimal(sp, id);
+    if(me) db.animals.forEach(function(o){
+      if(o.id===id || L.map[o.id]) return;
+      var sm = !!(me.damId && o.damId===me.damId);
+      var sf = !!(me.sireId && o.sireId && (me.sireId!=='external' ? o.sireId===me.sireId : (o.sireId==='external' && me.externalSireId && o.externalSireId===me.externalSireId)));
+      if(!sm && !sf) return;
+      var male = maleTypes(sp).indexOf(o.type)>=0, kind = male ? 'ভাই' : (femaleTypes(sp).indexOf(o.type)>=0 ? 'বোন' : 'ভাই/বোন');
+      L.map[o.id] = { g:0.5, label: (sm&&sf) ? 'আপন '+kind+' (একই মা ও বাবা)' : (sm ? kind+' (শুধু মা একই)' : kind+' (শুধু বাবা একই)') };
+    });
+  }
 }
 function setLineage(sp) { LIN[sp].id = gv(sp+'-lin-sel'); linCompute(sp); renderAnimals(sp); }
 function setLinMode(sp, m) { LIN[sp].mode = m; linCompute(sp); renderAnimals(sp); }
@@ -2307,7 +2344,7 @@ function fillLinSelect(sp) {
   var sel = document.getElementById(sp+'-lin-sel'); if(!sel) return;
   var cur = LIN[sp].id, h = '<option value="">🌳 কোন পশুর বংশধারা দেখবেন? (সব পশু)</option>';
   speciesDB(sp).animals.forEach(function(a){ h += '<option value="'+a.id+'"'+(a.id===cur?' selected':'')+'>'+esc(a.tag)+(a.name?' – '+esc(a.name):'')+(a.status!=='active'?' (বিক্রি/মৃত)':'')+'</option>'; });
-  sel.innerHTML = h;
+  sel.innerHTML = h; renderLinBtn(sp);
 }
 function renderLinBox(sp) {
   var L = LIN[sp], box = document.getElementById(sp+'-lin-box'), modes = document.getElementById(sp+'-lin-modes'); if(!box) return;
@@ -2318,14 +2355,14 @@ function renderLinBox(sp) {
   order.sort(function(a,b){ return groups[a].g - groups[b].g; });
   var sel = findAnimal(sp, L.id), h = '<div class="lintree">';
   order.filter(function(k){ return groups[k].g<0; }).forEach(function(k){ h += linRow(sp, groups[k]); });
-  h += '<div class="linme">'+(sel ? esc(sel.tag)+(sel.name?' – '+esc(sel.name):'') : '')+'<span class="sub"> · নির্বাচিত</span></div>';
+  h += '<div class="linme" style="display:flex;align-items:center;gap:10px">'+(sel ? pkAvatar(sp,sel,46)+'<div>'+esc(animalLabel(sel))+'<div class="sub" style="font-weight:400">নির্বাচিত পশু'+(sel.dob?' · '+ageYMD(sel.dob):'')+'</div></div>' : '')+'</div>';
   order.filter(function(k){ return groups[k].g>0; }).forEach(function(k){ h += linRow(sp, groups[k]); });
   if(!order.length) h += '<div class="small-note">এই পশুর বাবা-মা বা সন্তানের তথ্য এখনও লেখা নেই।</div>';
   L.ext.forEach(function(x){ h += '<div class="small-note">বাইরের ষাঁড় ('+esc(x.of)+'-এর বাবা): '+esc(x.id)+(x.breed?' · '+esc(x.breed):'')+'</div>'; });
   box.innerHTML = h + '</div>';
 }
 function linRow(sp, g) {
-  return '<div class="linrow"><span class="sub">'+g.label+'</span><div class="chips" style="margin:0">'+g.list.map(function(id){ var a = findAnimal(sp,id); return a ? '<span class="badge tag-'+a.type+'" style="cursor:pointer" onclick="viewAnimal(\''+sp+'\',\''+a.id+'\')">'+esc(a.tag)+(a.name?' · '+esc(a.name):'')+'</span>' : ''; }).join('')+'</div></div>';
+  return '<div class="linrow"><span class="sub" style="font-weight:700">'+g.label+'</span><div class="lcards">'+g.list.map(function(id){ var a = findAnimal(sp,id); if(!a) return ''; return '<div class="lcard" onclick="viewAnimal(\''+sp+'\',\''+a.id+'\')">'+pkAvatar(sp,a,40)+'<div style="min-width:0"><div class="nm" style="font-size:12.5px">'+esc(animalLabel(a))+'</div><div class="sub">'+typeLabel(sp,a.type)+(a.dob?' · '+ageYMD(a.dob):'')+(a.status!=='active'?' · '+(a.status==='sold'?'বিক্রি':'মৃত'):'')+'</div></div></div>'; }).join('')+'</div></div>';
 }
 var _ra0 = renderAnimals;
 renderAnimals = function(sp){ fillLinSelect(sp); _ra0(sp); renderLinBox(sp); };
@@ -2741,6 +2778,303 @@ function nuMilkCard() {
   return h + '</div>';
 }
 
+
+// ================= পশুর তথ্য, ছবি, মা-বাবা বাছাই, বংশ ও ড্যাশবোর্ড (v1.20) =================
+function aPhoto(sp, a) { return a.photo || ((typeof photoCache!=='undefined' && photoCache[sp+'_'+a.id]) || ''); }
+function ageYMD(dob) {
+  if(!dob) return ''; var d = new Date(dob+'T12:00:00'), t = new Date(todayISO()+'T12:00:00');
+  var y = t.getFullYear()-d.getFullYear(), m = t.getMonth()-d.getMonth(), dd = t.getDate()-d.getDate();
+  if(dd<0){ m--; dd += new Date(t.getFullYear(), t.getMonth(), 0).getDate(); } if(m<0){ y--; m += 12; }
+  if(y<0) return '';
+  var p = []; if(y) p.push(bn(y)+' বছর'); if(m) p.push(bn(m)+' মাস'); if(dd || !p.length) p.push(bn(dd)+' দিন'); return p.join(' ');
+}
+function dAgo(d) { var n = daysBetween(d, todayISO()); return n<=0 ? 'আজ' : bn(n)+' দিন আগে'; }
+function aWeights(sp, a) {
+  var h = getAnimalWeightHistory(sp, a.id).map(function(x){ return { date:x.date, w:x.weight }; });
+  if(!h.length){ var w = a.acquiredWeight || a.birthWeight, d = a.acquiredDate || a.dob; if(w && d) h = [{ date:d, w:w, base:true }]; }
+  return h;
+}
+function healthState(sp, a) {
+  var hl = speciesDB(sp).health.filter(function(h){ return h.animalId===a.id; }).sort(function(x,y){ return y.date.localeCompare(x.date); });
+  var today = todayISO(), overdue = null, next = null;
+  hl.forEach(function(h){
+    if(!h.nextDate) return;
+    var later = hl.some(function(o){ return o!==h && o.type===h.type && o.date>=h.nextDate; });
+    if(later) return;
+    if(h.nextDate<today){ if(!overdue || h.nextDate<overdue.nextDate) overdue = h; }
+    else if(!next || h.nextDate<next.nextDate) next = h;
+  });
+  return { last: hl[0] || null, overdue: overdue, next: next };
+}
+function dairyInfo(a) {
+  var today = todayISO(), by = {};
+  DB.cattle.milk.filter(function(m){ return m.animalId===a.id; }).forEach(function(m){ var o = by[m.date] = by[m.date] || { am:0, pm:0 }; o.am += m.morning||0; o.pm += m.evening||0; });
+  var dates = Object.keys(by).sort();
+  var births = getAnimalBreedingAsDam('cattle', a.id).filter(function(b){ return b.actualBirthDate; }).sort(function(x,y){ return x.actualBirthDate.localeCompare(y.actualBirthDate); });
+  var lastBirth = births.length ? births[births.length-1].actualBirthDate : null;
+  var start = lastBirth || (dates.length ? dates[0] : null), lac = dates.filter(function(d){ return !start || d>=start; });
+  var tot = function(d){ return by[d].am + by[d].pm; };
+  var total = lac.reduce(function(s,d){ return s+tot(d); },0), peak = lac.reduce(function(s,d){ return Math.max(s,tot(d)); },0);
+  var full = null; for(var i=dates.length-1;i>=0;i--){ if(dates[i]<today && by[dates[i]].am>0 && by[dates[i]].pm>0){ full = dates[i]; break; } }
+  if(!full){ for(var j=dates.length-1;j>=0;j--){ if(dates[j]<today && tot(dates[j])>0){ full = dates[j]; break; } } }
+  var win = function(from, to){ var ds = dates.filter(function(d){ var n = daysBetween(d, today); return n>=from && n<=to && tot(d)>0; }); return ds.length ? ds.reduce(function(s,d){ return s+tot(d); },0)/ds.length : 0; };
+  var a7 = win(0,6), p7 = win(7,13);
+  return { has: dates.length>0, start: start, dim: start ? daysBetween(start, today) : null, milkDays: lac.length, total: total, peak: peak, full: full, fullL: full ? tot(full) : 0, a7: a7, trend: (a7>0 && p7>0) ? (a7-p7)/p7*100 : null, parity: births.length, lastBirth: lastBirth };
+}
+function breedInfo(sp, a) {
+  var g = gestationDays(sp), row = buildCalvingList(speciesDB(sp), g).filter(function(r){ return r.damId===a.id; })[0];
+  var br = getAnimalBreedingAsDam(sp, a.id), svc = br.filter(function(b){ return b.breedingDate; })[0];
+  var o = { preg: row ? Math.max(0, g-row.daysRemaining) : null, rem: row ? row.daysRemaining : null };
+  if(row) o.due = new Date(Date.now()+row.daysRemaining*864e5).toISOString().slice(0,10);
+  if(svc && !svc.actualBirthDate) o.svcDays = daysBetween(svc.breedingDate, todayISO());
+  var births = br.filter(function(b){ return b.actualBirthDate; }).sort(function(x,y){ return y.actualBirthDate.localeCompare(x.actualBirthDate); });
+  if(births[0]) o.sinceBirth = daysBetween(births[0].actualBirthDate, todayISO());
+  return o;
+}
+function offspringOf(sp, a) { return speciesDB(sp).animals.filter(function(o){ return o.damId===a.id || o.sireId===a.id; }).length; }
+function parentTxt(sp, a) {
+  var d = findAnimal(sp, a.damId), s = a.sireId==='external' ? null : findAnimal(sp, a.sireId);
+  var out = []; if(d) out.push('মা: '+esc(d.tag)); if(s) out.push('বাবা: '+esc(s.tag)); else if(a.sireId==='external') out.push('বাবা: '+esc(a.externalSireId||'AI ষাঁড়'));
+  return out.join(' · ');
+}
+function animalInfoHtml(sp, a) {
+  if(a.status!=='active') return '';
+  var today = todayISO(), it = [], al = [], W = aWeights(sp, a), last = W.length ? W[W.length-1] : null;
+  var kv = function(l, v){ if(v!=null && v!=='') it.push('<div><span>'+l+'</span><b>'+v+'</b></div>'); };
+  kv('আজকের বয়স', a.dob ? ageYMD(a.dob) : '<i style="font-weight:400;color:#b9741a">জন্ম তারিখ নেই</i>');
+  if(last){
+    kv('সর্বশেষ ওজন', bn(Math.round(last.w*10)/10)+' কেজি'+(last.base?' <i>(শুরুর ওজন)</i>':''));
+    var dl = daysBetween(last.date, today); kv('ওজন নেওয়া হয়েছে', dl<=0 ? 'আজ' : bn(dl)+' দিন আগে');
+    if(W.length>=2){ var p = W[W.length-2], dd = daysBetween(p.date, last.date); if(dd>0) kv('দৈনিক ওজন বৃদ্ধি', (last.w>=p.w?'+':'−')+bn(Math.abs(Math.round((last.w-p.w)/dd*100)/100))+' কেজি'); }
+    if(dl>30) al.push(['badge-orange','⚖️ ওজন নেওয়া হয়নি '+bn(dl)+' দিন']);
+  } else al.push(['badge-red','⚖️ ওজনের রেকর্ড নেই']);
+  var rate = sp==='cattle' ? DB.settings.cattleRate : DB.settings.goatRate;
+  if(last && rate>0) kv('আনুমানিক মূল্য', fmtMoney(last.w*rate));
+  if(a.acquiredDate) kv('খামারে আছে', bn(Math.max(0,daysBetween(a.acquiredDate, today)))+' দিন'+(a.origin==='bought' ? ' · কেনা'+(a.acquiredCost?' '+fmtMoney(a.acquiredCost):'') : ' · খামারে জন্ম'));
+  if(sp==='cattle' && a.type==='cow'){
+    var d = dairyInfo(a), b = breedInfo(sp, a);
+    if(d.has){
+      kv('🥛 ল্যাকটেশন', (d.parity ? bn(d.parity)+' নং প্রসব · ' : '')+(d.dim!=null ? bn(d.dim)+' দিন যাবত দুধ' : bn(d.milkDays)+' দিন রেকর্ড'));
+      kv('🥛 এ ল্যাকটেশনে মোট', bn(Math.round(d.total))+' লি.');
+      kv('🥛 শেষ পূর্ণ দিনে', d.full ? bn(Math.round(d.fullL*10)/10)+' লি. <i>('+fmtDateBn(d.full).slice(0,5)+')</i>' : '—');
+      kv('🥛 ৭ দিনের গড় / সর্বোচ্চ', bn(Math.round(d.a7*10)/10)+' / '+bn(Math.round(d.peak*10)/10)+' লি.'+(d.trend!=null ? (d.trend>=5?' ↑':(d.trend<=-5?' ↓':' →')) : ''));
+      if(d.trend!=null && d.trend<=-15) al.push(['badge-orange','🥛 দুধ '+bn(Math.round(-d.trend))+'% কমেছে']);
+    } else kv('🥛 দুধ', '<i style="font-weight:400">রেকর্ড নেই</i>');
+    if(b.preg!=null){
+      kv('🍼 গর্ভকাল', bn(b.preg)+' দিন ('+bn(Math.floor(b.preg/30.4))+' মাস)');
+      kv('🍼 প্রসব হবে', b.rem>=0 ? bn(b.rem)+' দিন পরে · '+fmtDateBn(b.due).slice(0,5) : '<span style="color:#b5392e">'+bn(-b.rem)+' দিন বিলম্ব</span>');
+      if(b.rem<=14) al.push(['badge-orange','🍼 প্রসব '+(b.rem>=0?'কাছে':'বিলম্বিত')]);
+    } else {
+      if(b.svcDays!=null) kv('শেষ প্রজনন', bn(b.svcDays)+' দিন আগে');
+      if(b.sinceBirth!=null){ kv('শেষ প্রসবের পর', bn(b.sinceBirth)+' দিন'); if(b.sinceBirth>120 && d.has) al.push(['badge-orange','🔁 প্রজনন বিলম্ব']); }
+    }
+    var ml = buildMilkingList().filter(function(r){ return r.damId===a.id; })[0];
+    if(ml && ml.dryOff){ var rd = daysBetween(todayISO(), ml.dryOff); kv('দুধ শুকানো', rd>=0 ? bn(rd)+' দিন পরে' : 'সময় হয়েছে'); if(rd<=14) al.push(['badge-orange','🥛 দুধ শুকানোর সময়']); }
+  } else if(sp==='goats' && a.type==='doe'){
+    var b2 = breedInfo(sp, a);
+    if(b2.preg!=null){ kv('🍼 গর্ভকাল', bn(b2.preg)+' দিন'); kv('🍼 প্রসব হবে', b2.rem>=0 ? bn(b2.rem)+' দিন পরে' : bn(-b2.rem)+' দিন বিলম্ব'); if(b2.rem<=10) al.push(['badge-orange','🍼 প্রসব কাছে']); }
+  }
+  var n = offspringOf(sp, a); if(n) kv('বাচ্চা', bn(n)+' টি');
+  var hs = healthState(sp, a);
+  if(hs.last) kv('শেষ স্বাস্থ্যসেবা', esc(hs.last.type)+' · '+dAgo(hs.last.date));
+  if(hs.overdue) al.push(['badge-red','🩺 '+esc(hs.overdue.type)+' বকেয়া']);
+  else if(hs.next && daysBetween(today, hs.next.nextDate)<=14) al.push(['badge-orange','🩺 '+esc(hs.next.type)+' '+bn(daysBetween(today, hs.next.nextDate))+' দিনে']);
+  var pt = parentTxt(sp, a); if(pt) kv('মা-বাবা', pt);
+  return '<div class="ainfo">'+it.join('')+'</div>'+(al.length ? '<div class="chips">'+al.map(function(x){ return '<span class="badge '+x[0]+'">'+x[1]+'</span>'; }).join('')+'</div>' : '');
+}
+
+// ---------- যেকোনো ছবিতে ট্যাপ করলে ফুল স্ক্রিন ----------
+(function(){
+  function init(){
+    var ov = document.createElement('div'); ov.id = 'imgview'; ov.innerHTML = '<img alt=""><button type="button" class="ivx">✕</button><div class="ivh">ট্যাপ করে বন্ধ করুন · দুই আঙুলে জুম</div>'; document.body.appendChild(ov);
+    var close = function(){ ov.classList.remove('on'); ov.firstChild.src = ''; };
+    ov.addEventListener('click', close);
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape') close(); });
+    document.addEventListener('click', function(e){
+      var t = e.target; if(!t || t.tagName!=='IMG' || (t.closest && t.closest('#imgview')) || !t.getAttribute('src')) return;
+      e.preventDefault(); e.stopPropagation(); ov.firstChild.src = t.src; ov.classList.add('on');
+    }, true);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+
+// ---------- মা-বাবা বাছাই: ছবিসহ কার্ড ----------
+var PK = { role:'', sp:'', all:false, q:'' };
+function pkAvatar(sp, a, sz) {
+  var p = aPhoto(sp, a), st = 'width:'+sz+'px;height:'+sz+'px;border-radius:'+Math.round(sz*0.28)+'px;flex-shrink:0;object-fit:cover';
+  return p ? '<img src="'+p+'" style="'+st+'">' : '<div style="'+st+';background:var(--gl);display:flex;align-items:center;justify-content:center;font-size:'+Math.round(sz*0.5)+'px">'+(sp==='goats'?'🐐':(a.type==='bull'?'🐂':'🐄'))+'</div>';
+}
+function pkCalfDob() { var m = document.getElementById('an-species').getAttribute('data-origin-mode') || 'bornhere'; return gv(m==='bornhere' ? 'an-dob' : 'an-dob-bought') || ''; }
+function pkReason(sp, c, role, calfDob, editId, newborn) {
+  var today = todayISO();
+  if(c.id===editId) return 'এই পশু নিজে';
+  var ageNow = c.dob ? daysBetween(c.dob, today) : null;
+  if(calfDob && c.dob && c.dob>=calfDob) return 'বাচ্চার চেয়ে বয়সে ছোট';
+  if(newborn){
+    if(c.status!=='active') return c.status==='sold' ? 'বিক্রি হয়ে গেছে' : 'মৃত/বাদ';
+    if(ageNow!=null && ageNow<365) return '১ বছরের কম বয়সী';
+    if(role==='dam'){
+      var g = gestationDays(sp), row = buildCalvingList(speciesDB(sp), g).filter(function(r){ return r.damId===c.id; })[0];
+      if(row){ var pd = g-row.daysRemaining; if(pd>=30 && pd<=g*0.76) return 'গর্ভবতী ('+bn(Math.floor(pd/30.4))+' মাস)'; }
+    }
+  } else {
+    if(c.dob && calfDob && daysBetween(c.dob, calfDob)<365) return 'বাচ্চার জন্মের দিনে ১ বছরের কম ছিল';
+    if(c.origin==='bought' && c.acquiredDate && c.acquiredDate>calfDob) return 'তখনও খামারে আসেনি';
+    if(c.status!=='active'){
+      var ev = speciesDB(sp).sales.filter(function(s){ return s.animalId===c.id && (s.event==='Sale' || s.event==='Death' || s.event==='Deceased'); }).sort(function(x,y){ return y.date.localeCompare(x.date); })[0];
+      if(ev && ev.date<calfDob) return 'আগেই বিক্রি/বাদ হয়েছে';
+    }
+  }
+  return '';
+}
+function pkCard(sp, a, extra) {
+  var W = aWeights(sp, a), last = W.length ? W[W.length-1] : null, line = [typeLabel(sp, a.type)];
+  if(a.breed) line.push(esc(a.breed)); if(a.dob) line.push(ageYMD(a.dob)); if(last) line.push(bn(Math.round(last.w))+' কেজি');
+  var more = [];
+  if(sp==='cattle' && a.type==='cow'){ var b = breedInfo(sp, a), d = dairyInfo(a); if(b.preg!=null) more.push('🍼 গর্ভবতী '+bn(Math.floor(b.preg/30.4))+' মাস'); if(d.has && d.dim!=null) more.push('🥛 দুধ '+bn(d.dim)+' দিন'); }
+  var n = offspringOf(sp, a); if(n) more.push('বাচ্চা '+bn(n)+'টি');
+  if(a.status!=='active') more.push('<span class="badge badge-orange">'+(a.status==='sold'?'বিক্রি':'মৃত')+'</span>');
+  var pt = parentTxt(sp, a); if(pt) more.push(pt);
+  return pkAvatar(sp, a, 54)+'<div style="flex:1;min-width:0"><div class="nm" style="font-size:14px">'+esc(animalLabel(a))+'</div><div class="sub">'+line.join(' · ')+'</div>'+(more.length ? '<div class="sub" style="margin-top:2px">'+more.join(' · ')+'</div>' : '')+(extra||'')+'</div>';
+}
+function openPicker(role, sp) {
+  PK = { role:role, sp:sp, all:false, q:'' };
+  var t = role==='dam' ? 'মা বাছুন' : (role==='sire' ? 'বাবা বাছুন' : 'কোন পশুর বংশ দেখবেন?');
+  document.getElementById('pk-box').innerHTML = '<div class="modal-header"><h3>'+t+'</h3><button class="modal-close" onclick="closeModal(\'modal-pick\')">✕</button></div><input class="search-box" id="pk-q" placeholder="🔍 ট্যাগ, নাম বা জাত খুঁজুন" oninput="PK.q=this.value;pkList()"><div id="pk-note" class="small-note" style="margin:-4px 0 8px"></div><div id="pk-list"></div>';
+  openModal('modal-pick'); pkList();
+}
+function pkList() {
+  var role = PK.role, sp = PK.sp, lin = role==='lin', editId = lin ? '' : gv('an-edit-id'), calfDob = lin ? '' : pkCalfDob();
+  var newborn = !calfDob || daysBetween(calfDob, todayISO())<=60;
+  var cur = role==='dam' ? gv('an-dam') : (role==='sire' ? gv('an-sire') : gv(sp+'-lin-sel'));
+  var types = role==='dam' ? femaleTypes(sp) : (role==='sire' ? maleTypes(sp) : null), q = PK.q.toLowerCase();
+  var rows = speciesDB(sp).animals.filter(function(a){ return (!types || types.indexOf(a.type)>=0) && (!q || (a.tag||'').toLowerCase().indexOf(q)>=0 || (a.name||'').toLowerCase().indexOf(q)>=0 || (a.breed||'').toLowerCase().indexOf(q)>=0); })
+    .map(function(a){ return { a:a, why: lin ? '' : pkReason(sp, a, role, calfDob, editId, newborn) }; });
+  var ok = rows.filter(function(r){ return !r.why; }), bad = rows.filter(function(r){ return r.why; });
+  if(!lin) document.getElementById('pk-note').innerHTML = newborn ? 'নতুন জন্মানো বাচ্চা ধরে হিসাব: বিক্রি, ১ বছরের কম বা ১–৭ মাসের গর্ভবতী গরু দেখানো হচ্ছে না।' : 'বাচ্চার জন্ম তারিখ ('+fmtDateBn(calfDob)+') ধরে হিসাব: তখন ১ বছর বয়স পূর্ণ ও খামারে ছিল এমন পশু।';
+  var h = '<div class="pkrow" onclick="pickPick(\'\')"><div class="av" style="width:54px;height:54px;border-radius:15px;font-size:20px">∅</div><div style="flex:1"><div class="nm">'+(lin?'— কোনোটি নয় (সব পশু দেখান) —':'— কেউ নয় / জানা নেই —')+'</div></div></div>';
+  var sel = role==='dam' ? gv('an-sire') : (role==='sire' ? gv('an-dam') : '');
+  var card = function(r, bd){
+    var a = r.a, rel = '';
+    if(!lin && !bd){
+      if(role==='sire' && sel && isRelated(sp, sel, a.id)) rel = '<div class="sub" style="color:#b5392e;font-weight:700">⚠ মায়ের সাথে ঘনিষ্ঠ আত্মীয়</div>';
+      if(role==='dam' && sel && sel!=='external' && isRelated(sp, a.id, sel)) rel = '<div class="sub" style="color:#b5392e;font-weight:700">⚠ বাবার সাথে ঘনিষ্ঠ আত্মীয়</div>';
+    }
+    var extra = rel + (bd ? '<div class="sub" style="color:#b9741a;font-weight:700">লুকানোর কারণ: '+r.why+'</div>' : '');
+    return '<div class="pkrow'+(a.id===cur?' on':'')+(bd?' dim':'')+'" onclick="pickPick(\''+a.id+'\')">'+pkCard(sp, a, extra)+'<button class="btn btn-sm btn-green" onclick="event.stopPropagation();pickPick(\''+a.id+'\')">বাছুন</button></div>';
+  };
+  ok.forEach(function(r){ h += card(r,false); });
+  if(!ok.length) h += '<div class="empty-state" style="padding:14px">উপযুক্ত কোনো পশু পাওয়া যায়নি।</div>';
+  if(bad.length){
+    h += '<button class="btn btn-sm btn-gray" style="width:100%;margin:8px 0" onclick="PK.all=!PK.all;pkList()">'+(PK.all?'▲ লুকানো ':'▼ লুকানো ')+bn(bad.length)+'টি '+(PK.all?'সরান':'দেখুন')+'</button>';
+    if(PK.all) bad.forEach(function(r){ h += card(r,true); });
+  }
+  document.getElementById('pk-list').innerHTML = h;
+}
+function pickPick(id) {
+  if(PK.role==='dam') document.getElementById('an-dam').value = id;
+  else if(PK.role==='sire') document.getElementById('an-sire').value = id;
+  else { document.getElementById(PK.sp+'-lin-sel').value = id; LIN[PK.sp].id = id; linCompute(PK.sp); closeModal('modal-pick'); renderAnimals(PK.sp); return; }
+  closeModal('modal-pick'); refreshParentPickers(); onAnimalDamOrSireChange();
+}
+function pickBtn(sp, a, ph) { return a ? '<div class="pickbtn-in">'+pkAvatar(sp, a, 40)+'<div style="flex:1;min-width:0;text-align:left"><div class="nm" style="font-size:13.5px">'+esc(animalLabel(a))+'</div><div class="sub">'+typeLabel(sp,a.type)+(a.breed?' · '+esc(a.breed):'')+(a.dob?' · '+ageYMD(a.dob):'')+'</div></div><span class="sub">পাল্টান ▾</span></div>' : '<div class="pickbtn-in"><div class="av" style="width:40px;height:40px;border-radius:12px;font-size:16px">👤</div><div style="flex:1;text-align:left;color:#8a948d">'+ph+'</div><span class="sub">বাছুন ▾</span></div>'; }
+function refreshParentPickers() {
+  var sp = gv('an-species'); if(!sp) return;
+  var d = document.getElementById('an-dam-pick'), s = document.getElementById('an-sire-pick');
+  if(d) d.innerHTML = pickBtn(sp, findAnimal(sp, gv('an-dam')), '— মা বাছুন (জানা থাকলে) —');
+  if(s) s.innerHTML = pickBtn(sp, findAnimal(sp, gv('an-sire')), '— বাবা বাছুন (জানা থাকলে) —');
+}
+// বাগ ফিক্স: বাবা বাছলে তালিকা আবার বানিয়ে নির্বাচন মুছে ফেলত — এখন নির্বাচন ধরে রাখে
+populateAnimalSireOptions = function() {
+  var species = gv('an-species'), editId = gv('an-edit-id'), sel = document.getElementById('an-sire'), cur = sel.value;
+  sel.innerHTML = '<option value="">-- none --</option>';
+  speciesDB(species).animals.filter(function(a){ return maleTypes(species).indexOf(a.type)>=0 && a.id!==editId; }).forEach(function(a){ sel.innerHTML += '<option value="'+a.id+'">'+esc(animalLabel(a))+'</option>'; });
+  sel.value = cur;
+};
+onAnimalDamOrSireChange = function() {
+  var species = gv('an-species'), damId = gv('an-dam'), sireId = gv('an-sire'), note = document.getElementById('an-sire-warning');
+  if(damId && sireId && isRelated(species, damId, sireId)) note.innerHTML = '<span style="color:#c0392b;font-weight:600">⚠ এই জোড়া ঘনিষ্ঠ আত্মীয় — সাবধান।</span>';
+  else { var s = findAnimal(species, sireId); note.textContent = s && s.breed ? 'জাত: '+s.breed : ''; }
+  refreshParentPickers();
+};
+var _oam0 = openAnimalModal;
+openAnimalModal = function(species) {
+  _oam0(species);
+  var dam = document.getElementById('an-dam'); dam.innerHTML = '<option value="">-- none --</option>';
+  speciesDB(species).animals.filter(function(a){ return femaleTypes(species).indexOf(a.type)>=0; }).forEach(function(a){ dam.innerHTML += '<option value="'+a.id+'">'+esc(animalLabel(a))+'</option>'; });
+  populateAnimalSireOptions(); refreshParentPickers();
+  document.getElementById('animal-modal-title').textContent = 'পশু যোগ করুন';
+};
+var _ea0 = editAnimal;
+editAnimal = function(species, id) {
+  _ea0(species, id);
+  document.getElementById('animal-modal-title').textContent = 'পশুর তথ্য এডিট';
+  var a = findAnimal(species, id); if(!a) return;
+  document.getElementById('an-dam').value = a.damId || '';
+  if(a.sireId && a.sireId!=='external') document.getElementById('an-sire').value = a.sireId;
+  refreshParentPickers(); onAnimalDamOrSireChange();
+};
+
+// ---------- ড্যাশবোর্ড: এখন নজর দিন + পশুপালের সারসংক্ষেপ ----------
+function dashNames(arr, sp) { return arr.slice(0,3).map(function(x){ return esc(animalLabel(x)); }).join(', ')+(arr.length>3 ? ' ও আরও '+bn(arr.length-3)+' জন' : ''); }
+function renderDashTop() {
+  var box = document.getElementById('d-alerts2'); if(!box) return;
+  var today = todayISO(), A = [], sps = [['cattle','গরু'],['goats','ছাগল']];
+  var push = function(c, ic, t){ A.push('<div class="alrt '+c+'"><span>'+ic+'</span><div>'+t+'</div></div>'); };
+  var active = { cattle: DB.cattle.animals.filter(function(a){ return a.status==='active'; }), goats: DB.goats.animals.filter(function(a){ return a.status==='active'; }) };
+  sps.forEach(function(s){
+    var sp = s[0], od = [], soon = [], stale = [], none = [], due = [];
+    active[sp].forEach(function(a){
+      var hs = healthState(sp, a); if(hs.overdue) od.push(a); else if(hs.next && daysBetween(today, hs.next.nextDate)<=14) soon.push(a);
+      var W = aWeights(sp, a); if(!W.length) none.push(a); else if(daysBetween(W[W.length-1].date, today)>30) stale.push(a);
+    });
+    var g = gestationDays(sp);
+    buildCalvingList(speciesDB(sp), g).forEach(function(r){ if(r.daysRemaining<=14){ var an = findAnimal(sp, r.damId); if(an) due.push({ a:an, r:r }); } });
+    if(od.length) push('r','🩺', '<b>'+s[1]+': স্বাস্থ্যসেবা বকেয়া</b> — '+dashNames(od));
+    if(soon.length) push('o','🩺', '<b>'+s[1]+': ১৪ দিনের মধ্যে স্বাস্থ্যসেবা</b> — '+dashNames(soon));
+    if(due.length) push('o','🍼', '<b>'+s[1]+': প্রসব কাছে/বিলম্বিত</b> — '+due.slice(0,3).map(function(x){ return esc(animalLabel(x.a))+' ('+(x.r.daysRemaining>=0 ? bn(x.r.daysRemaining)+' দিন' : bn(-x.r.daysRemaining)+' দিন বিলম্ব')+')'; }).join(', '));
+    if(stale.length) push('o','⚖️', '<b>'+s[1]+': ৩০ দিনের বেশি ওজন নেওয়া হয়নি</b> — '+bn(stale.length)+'টি, '+dashNames(stale));
+    if(none.length) push('y','⚖️', '<b>'+s[1]+': ওজনের রেকর্ডই নেই</b> — '+bn(none.length)+'টি');
+  });
+  var dry = buildMilkingList().filter(function(r){ return r.dryOff && daysBetween(today, r.dryOff)<=14; }).map(function(r){ return findAnimal('cattle', r.damId); }).filter(Boolean);
+  if(dry.length) push('o','🥛','<b>দুধ শুকানোর সময় কাছে</b> — '+dashNames(dry));
+  var open = buildMilkingList().filter(function(r){ var an = findAnimal('cattle', r.damId); return an && r.daysInMilk>120 && breedInfo('cattle', an).preg==null; }).map(function(r){ return findAnimal('cattle', r.damId); });
+  if(open.length) push('y','🔁','<b>প্রসবের ১২০ দিন পরেও গর্ভধারণ নেই</b> — '+dashNames(open));
+  var due2 = 0; DB.labour.employees.forEach(function(e){ due2 += Math.max(0, empLedger(e).dueNow); });
+  if(due2>0) push('y','👥','<b>কর্মীর বকেয়া বেতন</b> — '+fmtMoney(due2));
+  try{ var miss = DB.nutri.ingredients.filter(function(g){ return !g.price && DB.nutri.ratios.some(function(r){ return r.items.some(function(i){ return i.ing===g.id; }); }); }); if(miss.length) push('y','🌾','<b>খাদ্য উপাদানের দাম বসানো হয়নি</b> — '+miss.slice(0,4).map(function(g){ return esc(g.name); }).join(', ')+(miss.length>4?'…':'')); }catch(e){}
+  var h = '<div class="card"><h3>🔔 এখন নজর দিন <span class="sub" style="font-weight:400">· '+(A.length ? bn(A.length)+'টি বিষয়' : 'সব ঠিক')+'</span></h3>'+(A.length ? A.join('') : '<div class="empty-state" style="padding:10px">✅ এই মুহূর্তে জরুরি কিছু নেই।</div>')+'</div>';
+  // পশুপালের সারসংক্ষেপ
+  var cattle = active.cattle, goats = active.goats, val = 0, ads = [];
+  var cows = cattle.filter(function(a){ return a.type==='cow'; }), ml = buildMilkingList();
+  var preg = buildCalvingList(DB.cattle, 280).length + buildCalvingList(DB.goats, 150).length;
+  var cr = DB.settings.cattleRate||0, gr = DB.settings.goatRate||0;
+  if(cr>0) val += computeNetWorth('cattle', cr).total; if(gr>0) val += computeNetWorth('goats', gr).total;
+  cattle.filter(function(a){ return a.type==='bull'; }).forEach(function(a){ var W = aWeights('cattle', a); if(W.length>=2){ var p = W[W.length-2], l = W[W.length-1], dd = daysBetween(p.date, l.date); if(dd>0) ads.push((l.w-p.w)/dd); } });
+  var adg = ads.length ? ads.reduce(function(s,x){ return s+x; },0)/ads.length : null;
+  var today2 = DB.cattle.milk.filter(function(m){ return m.date===today; }).reduce(function(s,m){ return s+(m.morning||0)+(m.evening||0); },0);
+  var yd = new Date(Date.now()-864e5).toISOString().slice(0,10), y2 = DB.cattle.milk.filter(function(m){ return m.date===yd; }).reduce(function(s,m){ return s+(m.morning||0)+(m.evening||0); },0);
+  var cell = function(l, v, c){ return '<div class="mini2"><div class="sub">'+l+'</div><div class="mv" style="color:'+(c||'var(--g2)')+'">'+v+'</div></div>'; };
+  h += '<div class="card"><h3>🐾 পশুপালের সারসংক্ষেপ</h3><div class="mini2g">'+
+    cell('মোট সক্রিয় পশু', bn(cattle.length+goats.length)+' টি')+
+    cell('আনুমানিক মূল্য', (cr>0||gr>0) ? fmtMoney(val) : '<span class="sub">রেট দিন</span>', '#1b7a4a')+
+    cell('গর্ভবতী', bn(preg)+' টি','#b9591a')+
+    cell('দুধ দিচ্ছে / মোট গাভী', bn(ml.length)+' / '+bn(cows.length),'#0f766e')+
+    cell('আজ বনাম গতকাল (দুধ)', bn(Math.round(today2))+' / '+bn(Math.round(y2))+' লি.')+
+    cell('ষাঁড়ের গড় ওজন বৃদ্ধি', adg!=null ? bn(Math.round(adg*100)/100)+' কেজি/দিন' : '<span class="sub">২টি ওজন লাগবে</span>','#2a6496')+
+    '</div></div>';
+  box.innerHTML = h;
+}
+var _rd1 = renderDashboard;
+renderDashboard = function(){ _rd1(); try{ renderDashTop(); }catch(e){ console.error(e); } };
+
+// ---------- বংশ দেখা: বাছাই ও ভাই-বোন ----------
+function renderLinBtn(sp) {
+  var b = document.getElementById(sp+'-lin-btn'); if(!b) return;
+  var a = LIN[sp].id ? findAnimal(sp, LIN[sp].id) : null;
+  b.innerHTML = a ? pickBtn(sp, a, '') : '<div class="pickbtn-in"><div class="av" style="width:40px;height:40px;border-radius:12px;font-size:18px">🌳</div><div style="flex:1;text-align:left;color:#8a948d">কোন পশুর বংশ দেখবেন? (সব পশু)</div><span class="sub">বাছুন ▾</span></div>';
+}
+
 // ================= FINANCE =================
 function cattleFinance() {
   var c = DB.cattle;
@@ -3074,34 +3408,34 @@ function renderDashboard() {
   document.getElementById('d-net-pl').textContent = fmtMoney(cf.profit+gf.profit-lc-oc);
 
   var today = todayISO();
-  var due = DB.cattle.health.map(function(h){ return {h:h,sp:'Cattle'}; }).concat(DB.goats.health.map(function(h){ return {h:h,sp:'Goats'}; }))
+  var due = DB.cattle.health.map(function(h){ return {h:h,sp:'গরু'}; }).concat(DB.goats.health.map(function(h){ return {h:h,sp:'ছাগল'}; }))
     .filter(function(x){ if(!x.h.nextDate) return false; var d = daysBetween(today, x.h.nextDate); return d>=-1 && d<=14; })
     .sort(function(a,b){ return a.h.nextDate.localeCompare(b.h.nextDate); });
   var dh = '';
-  if(due.length===0) dh = '<div class="empty-state" style="padding:10px">Nothing due soon.</div>';
+  if(due.length===0) dh = '<div class="empty-state" style="padding:10px">এখন কিছু বাকি নেই।</div>';
   else due.forEach(function(x){ dh += '<div class="expense-item"><div class="expense-row"><span style="font-size:13px">'+x.sp+' · '+x.h.type+'</span><span style="font-size:12px;color:#d35400;font-weight:600">'+x.h.nextDate+'</span></div></div>'; });
   document.getElementById('d-health-due').innerHTML = dh;
 
-  var bc = buildCalvingList(DB.cattle,280).map(function(r){ r.sp='Cattle'; r.g=280; r.animal=findAnimal('cattle',r.damId); return r; })
-    .concat(buildCalvingList(DB.goats,150).map(function(r){ r.sp='Goats'; r.g=150; r.animal=findAnimal('goats',r.damId); return r; }))
+  var bc = buildCalvingList(DB.cattle,280).map(function(r){ r.sp='গরু'; r.g=280; r.animal=findAnimal('cattle',r.damId); return r; })
+    .concat(buildCalvingList(DB.goats,150).map(function(r){ r.sp='ছাগল'; r.g=150; r.animal=findAnimal('goats',r.damId); return r; }))
     .sort(function(a,b){ return a.daysRemaining-b.daysRemaining; });
   var bh = '';
-  if(bc.length===0) bh = '<div class="empty-state" style="padding:10px">No active pregnancies.</div>';
+  if(bc.length===0) bh = '<div class="empty-state" style="padding:10px">কোনো গর্ভবতী পশু নেই।</div>';
   else bc.forEach(function(r){
     var color = gestationColor(r.daysRemaining, r.g);
     var pct = Math.max(0,Math.min(100, (r.daysRemaining/(r.g+10))*100));
     bh += '<div class="expense-item"><div class="expense-row"><span style="font-size:13px">'+r.sp+' · '+(r.animal?animalLabel(r.animal):'—')+'</span>';
-    bh += '<span style="font-size:12px;font-weight:700;color:'+color+'">'+(r.daysRemaining>=0?r.daysRemaining+'d left':'overdue '+(-r.daysRemaining)+'d')+'</span></div>';
+    bh += '<span style="font-size:12px;font-weight:700;color:'+color+'">'+(r.daysRemaining>=0?r.daysRemaining+' দিন বাকি':'বিলম্ব '+(-r.daysRemaining)+' দিন')+'</span></div>';
     bh += '<div class="gradient-track"><div class="gradient-marker" style="left:'+pct+'%"></div></div></div>';
   });
   document.getElementById('d-birth-countdown').innerHTML = bh;
 
   var ml = buildMilkingList();
   var mh = '';
-  if(ml.length===0) mh = '<div class="empty-state" style="padding:10px">No lactating cows yet.</div>';
+  if(ml.length===0) mh = '<div class="empty-state" style="padding:10px">এখনও কোনো দুধেল গাভী নেই।</div>';
   else ml.forEach(function(r){
     var a = findAnimal('cattle', r.damId);
-    mh += '<div class="expense-item"><div class="expense-row"><span style="font-size:13px">'+(a?animalLabel(a):'—')+'</span><span style="font-size:12px;font-weight:700">'+r.daysInMilk+'d</span></div>';
+    mh += '<div class="expense-item"><div class="expense-row"><span style="font-size:13px">'+(a?animalLabel(a):'—')+'</span><span style="font-size:12px;font-weight:700">'+r.daysInMilk+' দিন</span></div>';
     if(r.dryOff){
       var totalSpan = Math.max(1, daysBetween(r.start, r.dryOff));
       var milkingSpan = Math.max(0, totalSpan-60);
@@ -3109,7 +3443,7 @@ function renderDashboard() {
       var pctNow = Math.min(100,(r.daysInMilk/totalSpan)*100);
       mh += '<div class="milk-track"><div class="milk-fill" style="width:'+pctMilk+'%"></div><div class="milk-dry" style="left:'+pctMilk+'%;right:0"></div><div class="milk-marker" style="left:'+pctNow+'%"></div></div>';
       mh += '<div class="small-note">Dry off: '+r.dryOff+'</div>';
-    } else mh += '<div class="milk-track"><div class="milk-fill" style="width:'+Math.min(100,(r.daysInMilk/305)*100)+'%"></div></div><div class="small-note">Not yet rebred</div>';
+    } else mh += '<div class="milk-track"><div class="milk-fill" style="width:'+Math.min(100,(r.daysInMilk/305)*100)+'%"></div></div><div class="small-note">আবার প্রজনন হয়নি</div>';
     mh += '</div>';
   });
   document.getElementById('d-milking').innerHTML = mh;
