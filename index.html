@@ -213,6 +213,12 @@ img{cursor:zoom-in}
 .mini2 .mv{font-weight:800;font-size:16px;margin-top:2px}
 .lcards{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%}
 .lcard{display:flex;gap:8px;align-items:center;background:#f6f8f5;border-radius:12px;padding:6px 8px;cursor:pointer;min-width:0}
+.econ{margin-top:10px;border-radius:14px;padding:10px 12px;background:#f6f8f5;border:1px solid var(--line)}
+.econ.good{background:#f0faf3;border-color:#bfe3cc}.econ.warn{background:#fff6ea;border-color:#f0d3a6}.econ.bad{background:#fdf3f2;border-color:#f0c9c5}.econ.wait{background:#fdf9e8;border-color:#ecdca0}
+.econ .et{font-size:12.5px;font-weight:800;color:var(--g2);margin-bottom:6px}
+.erow{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:3px 0;border-bottom:1px dashed rgba(0,0,0,.07)}
+.erow span{color:#555}.erow b{text-align:right}
+.econ .ev{margin-top:8px;font-size:12.5px;font-weight:700}
 @media print{body *{visibility:hidden}#payroll-report,#payroll-report *{visibility:visible}#payroll-report{position:absolute;left:0;top:0;width:100%;border:0}.no-print{display:none!important}}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -887,8 +893,8 @@ function previewPhoto(input, previewId) {
 
 function typeOptionsFor(species) {
   return species === 'cattle'
-    ? [['bull','Bull (Meat)'],['cow','Cow (Dairy)']]
-    : [['buck','Buck (Male)'],['doe','Doe (Female)'],['kid','Kid']];
+    ? [['bull','ষাঁড় (মাংসের)'],['cow','গাভী (দুধের)']]
+    : [['buck','পাঁঠা'],['doe','ছাগী'],['kid','ছাগলছানা']];
 }
 function femaleTypes(species){ return species === 'cattle' ? ['cow'] : ['doe']; }
 function maleTypes(species){ return species === 'cattle' ? ['bull'] : ['buck']; }
@@ -2837,20 +2843,91 @@ function parentTxt(sp, a) {
   var out = []; if(d) out.push('মা: '+esc(d.tag)); if(s) out.push('বাবা: '+esc(s.tag)); else if(a.sireId==='external') out.push('বাবা: '+esc(a.externalSireId||'AI ষাঁড়'));
   return out.join(' · ');
 }
+function aWeightPts(sp, a) {
+  var pts = getAnimalWeightHistory(sp, a.id).map(function(x){ return { date:x.date, w:x.weight }; });
+  var bw = a.acquiredWeight || a.birthWeight, bd = a.acquiredDate || a.dob;
+  if(bw && bd && (!pts.length || bd<pts[0].date)) pts.unshift({ date:bd, w:bw, base:true });
+  return pts;
+}
+function avgMilkPrice() {
+  var l = 0, m = 0; (DB.cattle.milkSales||[]).forEach(function(x){ l += x.liters||0; m += x.amount||0; }); return l>0 ? m/l : 0;
+}
+// প্রতিটি পশুর লাভ-ক্ষতির মূল হিসাব
+function econCore(sp, a) {
+  var rate = (sp==='cattle' ? DB.settings.cattleRate : DB.settings.goatRate) || 0, today = todayISO();
+  var pts = aWeightPts(sp, a), last = pts.length ? pts[pts.length-1] : null, bd = computeAnimalCostBreakdown(sp, a);
+  var daysOn = Math.max(1, a.acquiredDate ? daysBetween(a.acquiredDate, today) : 1);
+  var o = { rate:rate, last:last, daysOn:daysOn, purchase:bd.acquisition||0, cost:bd.costIncl, running:bd.costIncl-(bd.acquisition||0), dailyCost:(bd.costIncl-(bd.acquisition||0))/daysOn,
+            value:(last && rate>0) ? last.w*rate : null, adg:null, adgDays:0, adgDelta:0, gainDay:null, milk:null, calves:null, kind:'grow' };
+  if(pts.length>=2){ var p = pts[pts.length-2], dd = daysBetween(p.date, last.date); if(dd>0){ o.adg = (last.w-p.w)/dd; o.adgDays = dd; o.adgDelta = last.w-p.w; } }
+  var dairy = sp==='cattle' && a.type==='cow', doe = sp==='goats' && a.type==='doe';
+  if(dairy || doe){
+    o.kind = dairy ? 'dairy' : 'doe';
+    var cv = 0, n = 0;
+    speciesDB(sp).animals.filter(function(k){ return k.damId===a.id; }).forEach(function(k){
+      n++; if(k.status==='sold'){ var s = lastSaleFor(sp, k.id); cv += s ? (s.salePrice||0) : 0; }
+      else if(k.status==='active'){ var kw = getAnimalCurrentWeight(sp, k); if(kw && rate>0) cv += kw*rate; }
+    });
+    o.calves = { n:n, val:cv };
+  }
+  if(dairy){
+    var price = avgMilkPrice(), di = dairyInfo(a), litres = 0;
+    DB.cattle.milk.filter(function(m){ return m.animalId===a.id; }).forEach(function(m){ litres += (m.morning||0)+(m.evening||0); });
+    o.milk = { price:price, a7:di.a7, dayVal:di.a7*price, litres:litres, totalVal:litres*price };
+  }
+  o.gainDay = (o.adg!=null && rate>0) ? o.adg*rate : null;
+  var ret = (o.value||0) + (o.milk ? o.milk.totalVal : 0) + (o.calves ? o.calves.val : 0);
+  o.ret = ret; o.profit = (o.value!=null) ? ret - o.cost : null;
+  o.net = dairy ? (o.milk && o.milk.price>0 ? o.milk.dayVal - o.dailyCost : null) : (o.gainDay!=null ? o.gainDay - o.dailyCost : null);
+  var pr = o.profit, nt = o.net, v;
+  if(pr==null) v = { k:'na', t:'হিসাবের জন্য ওজন ও প্রতি কেজি রেট (হিসাব ট্যাব) দরকার' };
+  else if(nt==null) v = pr>=0 ? { k:'ok', t:'এ পর্যন্ত লাভে আছে। দৈনিক হিসাব জানতে '+(dairy?'দুধ বিক্রির রেকর্ড দিন':'আরেকটি ওজন নিন') } : { k:'bad', t:'এ পর্যন্ত লোকসানে আছে। দৈনিক হিসাব জানতে '+(dairy?'দুধ বিক্রির রেকর্ড দিন':'আরেকটি ওজন নিন') };
+  else if(pr>=0 && nt>=0) v = { k:'good', t:'✅ লাভজনক — মোট লাভ, প্রতিদিনও লাভ' };
+  else if(pr>=0 && nt<0) v = { k:'warn', t:'⚠️ এ পর্যন্ত লাভ, কিন্তু প্রতিদিন '+fmtMoney(-nt)+' লোকসান — বিক্রি বিবেচনা করুন' };
+  else if(pr<0 && nt>0){ var dn = Math.ceil(-pr/nt); v = { k:'wait', t: dn>1000 ? '⏳ লোকসান পুষিয়ে উঠতে অনেক সময় লাগবে' : '⏳ এখন লোকসান, তবে প্রতিদিন লাভ হচ্ছে — প্রায় '+bn(dn)+' দিনে খরচ উঠবে' }; }
+  else v = { k:'bad', t:'🔴 লোকসানি — প্রতিদিন '+fmtMoney(-nt)+' লোকসান। বিক্রি বা খাদ্য পর্যালোচনা করুন' };
+  o.v = v;
+  if(o.kind==='dairy' && !(o.milk && o.milk.a7>0) && pr!=null) o.v.t += (breedInfo(sp, a).preg!=null ? ' (গর্ভবতী — বাছুর হলে আয় যোগ হবে)' : ' (এখন দুধ দিচ্ছে না)');
+  return o;
+}
+function econHtml(sp, a) {
+  var e; try{ e = econCore(sp, a); }catch(err){ return ''; }
+  var rows = [], row = function(l, v, c){ rows.push('<div class="erow"><span>'+l+'</span><b'+(c?' style="color:'+c+'"':'')+'>'+v+'</b></div>'); };
+  var sign = function(x){ return (x>=0?'+':'−')+fmtMoney(Math.abs(x)); }, col = function(x){ return x>=0 ? '#1b7a4a' : '#b5392e'; };
+  row('কেনা দাম', e.purchase>0 ? fmtMoney(e.purchase) : 'খামারে জন্ম');
+  row('এ পর্যন্ত মোট খরচ', fmtMoney(e.cost));
+  if(e.value!=null){
+    row('বর্তমান মূল্য ('+bn(Math.round(e.last.w))+' কেজি × ৳'+bn(e.rate)+')', fmtMoney(e.value));
+    if(e.purchase>0) row('কেনা মূল্যের তুলনায়', e.value>=e.purchase ? fmtMoney(e.value-e.purchase)+' বেশি' : fmtMoney(e.purchase-e.value)+' কম', col(e.value-e.purchase));
+  } else row('বর্তমান মূল্য', '<span class="sub">'+(e.rate>0 ? 'ওজন নেই' : 'রেট নেই')+'</span>');
+  row('গড় দৈনিক খরচ', fmtMoney(e.dailyCost)+' / দিন');
+  if(e.kind==='grow'){
+    if(e.adg!=null) row('দৈনিক ওজন বৃদ্ধির মূল্য', e.gainDay!=null ? sign(e.gainDay)+' / দিন' : '—', e.gainDay!=null ? col(e.gainDay) : '');
+    if(e.net!=null) row('দৈনিক নিট (বৃদ্ধি − খরচ)', sign(e.net)+' / দিন', col(e.net));
+    if(e.value!=null && e.cost>0){
+      var bew = e.cost/e.rate, need = bew-e.last.w;
+      if(need>0) row('খরচ ওঠার ওজন', bn(Math.round(bew))+' কেজি (আরও '+bn(Math.round(need))+' কেজি'+(e.adg>0 ? ' · প্রায় '+bn(Math.ceil(need/e.adg))+' দিন' : '')+')');
+      else row('খরচ ওঠার ওজন', bn(Math.round(bew))+' কেজি — ✓ পেরিয়ে গেছে', '#1b7a4a');
+    }
+  } else {
+    if(e.milk && (e.milk.litres>0 || e.milk.a7>0)){ row('দৈনিক দুধের আয় ('+bn(Math.round(e.milk.a7*10)/10)+' লি. × ৳'+bn(Math.round(e.milk.price*10)/10)+')', e.milk.price>0 ? fmtMoney(e.milk.dayVal)+' / দিন' : '<span class="sub">দুধ বিক্রির দাম নেই</span>'); if(e.net!=null) row('দৈনিক নিট (দুধ − খরচ)', sign(e.net)+' / দিন', col(e.net)); row('এ পর্যন্ত দুধের মূল্য', fmtMoney(e.milk.totalVal)+' ('+bn(Math.round(e.milk.litres))+' লি.)'); }
+    if(e.calves) row('বাছুর', bn(e.calves.n)+' টি'+(e.calves.n ? ' · আনুমানিক '+fmtMoney(e.calves.val) : ''));
+  }
+  if(e.profit!=null) row('মোট লাভ / ক্ষতি', sign(e.profit), col(e.profit));
+  return '<div class="econ '+e.v.k+'"><div class="et">💰 লাভ-ক্ষতির হিসাব</div>'+rows.join('')+'<div class="ev">'+e.v.t+'</div></div>';
+}
 function animalInfoHtml(sp, a) {
   if(a.status!=='active') return '';
-  var today = todayISO(), it = [], al = [], W = aWeights(sp, a), last = W.length ? W[W.length-1] : null;
+  var today = todayISO(), it = [], al = [], W = aWeightPts(sp, a), last = W.length ? W[W.length-1] : null;
   var kv = function(l, v){ if(v!=null && v!=='') it.push('<div><span>'+l+'</span><b>'+v+'</b></div>'); };
-  kv('আজকের বয়স', a.dob ? ageYMD(a.dob) : '<i style="font-weight:400;color:#b9741a">জন্ম তারিখ নেই</i>');
+  var farm = a.acquiredDate ? (a.origin==='bought' ? ' <i>(খামারে '+ageYMD(a.acquiredDate)+')</i>' : ' <i>(খামারে জন্ম)</i>') : '';
+  kv('আজকের বয়স', (a.dob ? ageYMD(a.dob) : '<span style="font-weight:400;color:#b9741a">জন্ম তারিখ নেই</span>')+farm);
   if(last){
-    kv('সর্বশেষ ওজন', bn(Math.round(last.w*10)/10)+' কেজি'+(last.base?' <i>(শুরুর ওজন)</i>':''));
-    var dl = daysBetween(last.date, today); kv('ওজন নেওয়া হয়েছে', dl<=0 ? 'আজ' : bn(dl)+' দিন আগে');
-    if(W.length>=2){ var p = W[W.length-2], dd = daysBetween(p.date, last.date); if(dd>0) kv('দৈনিক ওজন বৃদ্ধি', (last.w>=p.w?'+':'−')+bn(Math.abs(Math.round((last.w-p.w)/dd*100)/100))+' কেজি'); }
+    var dl = daysBetween(last.date, today);
+    kv('সর্বশেষ ওজন', bn(Math.round(last.w*10)/10)+' কেজি <i>('+(last.base ? 'শুরুর ওজন · ' : '')+(dl<=0 ? 'আজ' : bn(dl)+' দিন আগে')+')</i>');
+    if(W.length>=2){ var p = W[W.length-2], dd = daysBetween(p.date, last.date); if(dd>0){ var g = (last.w-p.w)/dd*1000; kv('দৈনিক ওজন বৃদ্ধি', (g>=0?'+':'−')+bn(Math.round(Math.abs(g)))+' গ্রাম <i>('+bn(dd)+' দিনে '+(last.w>=p.w?'+':'−')+bn(Math.round(Math.abs(last.w-p.w)*10)/10)+' কেজি)</i>'); } }
     if(dl>30) al.push(['badge-orange','⚖️ ওজন নেওয়া হয়নি '+bn(dl)+' দিন']);
   } else al.push(['badge-red','⚖️ ওজনের রেকর্ড নেই']);
-  var rate = sp==='cattle' ? DB.settings.cattleRate : DB.settings.goatRate;
-  if(last && rate>0) kv('আনুমানিক মূল্য', fmtMoney(last.w*rate));
-  if(a.acquiredDate) kv('খামারে আছে', bn(Math.max(0,daysBetween(a.acquiredDate, today)))+' দিন'+(a.origin==='bought' ? ' · কেনা'+(a.acquiredCost?' '+fmtMoney(a.acquiredCost):'') : ' · খামারে জন্ম'));
   if(sp==='cattle' && a.type==='cow'){
     var d = dairyInfo(a), b = breedInfo(sp, a);
     if(d.has){
@@ -2859,7 +2936,7 @@ function animalInfoHtml(sp, a) {
       kv('🥛 শেষ পূর্ণ দিনে', d.full ? bn(Math.round(d.fullL*10)/10)+' লি. <i>('+fmtDateBn(d.full).slice(0,5)+')</i>' : '—');
       kv('🥛 ৭ দিনের গড় / সর্বোচ্চ', bn(Math.round(d.a7*10)/10)+' / '+bn(Math.round(d.peak*10)/10)+' লি.'+(d.trend!=null ? (d.trend>=5?' ↑':(d.trend<=-5?' ↓':' →')) : ''));
       if(d.trend!=null && d.trend<=-15) al.push(['badge-orange','🥛 দুধ '+bn(Math.round(-d.trend))+'% কমেছে']);
-    } else kv('🥛 দুধ', '<i style="font-weight:400">রেকর্ড নেই</i>');
+    } else kv('🥛 দুধ', '<span style="font-weight:400">রেকর্ড নেই</span>');
     if(b.preg!=null){
       kv('🍼 গর্ভকাল', bn(b.preg)+' দিন ('+bn(Math.floor(b.preg/30.4))+' মাস)');
       kv('🍼 প্রসব হবে', b.rem>=0 ? bn(b.rem)+' দিন পরে · '+fmtDateBn(b.due).slice(0,5) : '<span style="color:#b5392e">'+bn(-b.rem)+' দিন বিলম্ব</span>');
@@ -2874,13 +2951,13 @@ function animalInfoHtml(sp, a) {
     var b2 = breedInfo(sp, a);
     if(b2.preg!=null){ kv('🍼 গর্ভকাল', bn(b2.preg)+' দিন'); kv('🍼 প্রসব হবে', b2.rem>=0 ? bn(b2.rem)+' দিন পরে' : bn(-b2.rem)+' দিন বিলম্ব'); if(b2.rem<=10) al.push(['badge-orange','🍼 প্রসব কাছে']); }
   }
-  var n = offspringOf(sp, a); if(n) kv('বাচ্চা', bn(n)+' টি');
+  var n = offspringOf(sp, a); if(n && !(sp==='cattle' && a.type==='cow') && !(sp==='goats' && a.type==='doe')) kv('বাচ্চা', bn(n)+' টি');
   var hs = healthState(sp, a);
   if(hs.last) kv('শেষ স্বাস্থ্যসেবা', esc(hs.last.type)+' · '+dAgo(hs.last.date));
   if(hs.overdue) al.push(['badge-red','🩺 '+esc(hs.overdue.type)+' বকেয়া']);
   else if(hs.next && daysBetween(today, hs.next.nextDate)<=14) al.push(['badge-orange','🩺 '+esc(hs.next.type)+' '+bn(daysBetween(today, hs.next.nextDate))+' দিনে']);
   var pt = parentTxt(sp, a); if(pt) kv('মা-বাবা', pt);
-  return '<div class="ainfo">'+it.join('')+'</div>'+(al.length ? '<div class="chips">'+al.map(function(x){ return '<span class="badge '+x[0]+'">'+x[1]+'</span>'; }).join('')+'</div>' : '');
+  return '<div class="ainfo">'+it.join('')+'</div>'+(al.length ? '<div class="chips">'+al.map(function(x){ return '<span class="badge '+x[0]+'">'+x[1]+'</span>'; }).join('')+'</div>' : '')+econHtml(sp, a);
 }
 
 // ---------- যেকোনো ছবিতে ট্যাপ করলে ফুল স্ক্রিন ----------
@@ -3050,7 +3127,7 @@ function renderDashTop() {
   var preg = buildCalvingList(DB.cattle, 280).length + buildCalvingList(DB.goats, 150).length;
   var cr = DB.settings.cattleRate||0, gr = DB.settings.goatRate||0;
   if(cr>0) val += computeNetWorth('cattle', cr).total; if(gr>0) val += computeNetWorth('goats', gr).total;
-  cattle.filter(function(a){ return a.type==='bull'; }).forEach(function(a){ var W = aWeights('cattle', a); if(W.length>=2){ var p = W[W.length-2], l = W[W.length-1], dd = daysBetween(p.date, l.date); if(dd>0) ads.push((l.w-p.w)/dd); } });
+  cattle.filter(function(a){ return a.type==='bull'; }).forEach(function(a){ var W = aWeightPts('cattle', a); if(W.length>=2){ var p = W[W.length-2], l = W[W.length-1], dd = daysBetween(p.date, l.date); if(dd>0) ads.push((l.w-p.w)/dd); } });
   var adg = ads.length ? ads.reduce(function(s,x){ return s+x; },0)/ads.length : null;
   var today2 = DB.cattle.milk.filter(function(m){ return m.date===today; }).reduce(function(s,m){ return s+(m.morning||0)+(m.evening||0); },0);
   var yd = new Date(Date.now()-864e5).toISOString().slice(0,10), y2 = DB.cattle.milk.filter(function(m){ return m.date===yd; }).reduce(function(s,m){ return s+(m.morning||0)+(m.evening||0); },0);
@@ -3061,8 +3138,22 @@ function renderDashTop() {
     cell('গর্ভবতী', bn(preg)+' টি','#b9591a')+
     cell('দুধ দিচ্ছে / মোট গাভী', bn(ml.length)+' / '+bn(cows.length),'#0f766e')+
     cell('আজ বনাম গতকাল (দুধ)', bn(Math.round(today2))+' / '+bn(Math.round(y2))+' লি.')+
-    cell('ষাঁড়ের গড় ওজন বৃদ্ধি', adg!=null ? bn(Math.round(adg*100)/100)+' কেজি/দিন' : '<span class="sub">২টি ওজন লাগবে</span>','#2a6496')+
+    cell('ষাঁড়ের গড় ওজন বৃদ্ধি', adg!=null ? bn(Math.round(adg*1000))+' গ্রাম/দিন' : '<span class="sub">২টি ওজন লাগবে</span>','#2a6496')+
     '</div></div>';
+
+  // পশুপালের লাভ-ক্ষতি
+  var tv = 0, tc = 0, cnt = { good:0, wait:0, warn:0, bad:0, ok:0, na:0 }, losers = [];
+  [['cattle',cattle],['goats',goats]].forEach(function(p){ p[1].forEach(function(a){ var e; try{ e = econCore(p[0], a); }catch(er){ return; } cnt[e.v.k] = (cnt[e.v.k]||0)+1; if(e.profit!=null){ tv += e.ret; tc += e.cost; if(e.profit<0) losers.push({ a:a, sp:p[0], e:e }); } }); });
+  if(cattle.length+goats.length){
+    var pl = tv-tc;
+    h += '<div class="card"><h3>💹 পশুপালের লাভ-ক্ষতি <span class="sub" style="font-weight:400">· বর্তমান মূল্য ধরে</span></h3><div class="mini2g">'+
+      cell('মোট আয়/মূল্য (বর্তমান মূল্য + দুধ + বাছুর)', fmtMoney(tv), '#1b7a4a')+cell('মোট খরচ', fmtMoney(tc), '#b5392e')+
+      cell('মোট লাভ / ক্ষতি', (pl>=0?'▲ ':'▼ ')+fmtMoney(Math.abs(pl)), pl>=0?'#1b7a4a':'#b5392e')+
+      cell('লাভজনক / লোকসানি পশু', bn((cnt.good||0)+(cnt.ok||0))+' / '+bn((cnt.bad||0)+(cnt.warn||0)), '#2a6496')+'</div>';
+    losers.sort(function(x,y){ return x.e.profit-y.e.profit; });
+    if(losers.length) h += '<div class="small-note" style="margin:10px 0 4px;font-weight:700;color:#b5392e">সবচেয়ে বেশি লোকসানে:</div>'+losers.slice(0,3).map(function(x){ return '<div class="payrow"><span style="flex:1;font-weight:600">'+esc(animalLabel(x.a))+'</span><span class="sub">'+(x.e.net!=null ? 'দৈনিক '+(x.e.net>=0?'+':'−')+fmtMoney(Math.abs(x.e.net)) : '')+'</span><b style="color:#b5392e">−'+fmtMoney(-x.e.profit)+'</b></div>'; }).join('');
+    h += '<div class="small-note" style="margin-top:8px">প্রতি কেজি লাইভ ওজনের রেট (হিসাব ট্যাব) ও ওজনের রেকর্ড ঠিক থাকলে হিসাব নির্ভুল হয়।</div></div>';
+  }
   box.innerHTML = h;
 }
 var _rd1 = renderDashboard;
