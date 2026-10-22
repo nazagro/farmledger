@@ -2859,6 +2859,8 @@ function econCore(sp, a) {
   var daysOn = Math.max(1, a.acquiredDate ? daysBetween(a.acquiredDate, today) : 1);
   var o = { rate:rate, last:last, daysOn:daysOn, purchase:bd.acquisition||0, cost:bd.costIncl, running:bd.costIncl-(bd.acquisition||0), dailyCost:(bd.costIncl-(bd.acquisition||0))/daysOn,
             value:(last && rate>0) ? last.w*rate : null, adg:null, adgDays:0, adgDelta:0, gainDay:null, milk:null, calves:null, kind:'grow' };
+  o.estW = !pts.length;
+  try{ var rc = recentCost(sp, a); if(rc){ o.dailyCost = rc.total/rc.days; o.rc = rc; } }catch(er){}
   if(pts.length>=2){ var p = pts[pts.length-2], dd = daysBetween(p.date, last.date); if(dd>0){ o.adg = (last.w-p.w)/dd; o.adgDays = dd; o.adgDelta = last.w-p.w; } }
   var dairy = sp==='cattle' && a.type==='cow', doe = sp==='goats' && a.type==='doe';
   if(dairy || doe){
@@ -2900,7 +2902,9 @@ function econHtml(sp, a) {
     row('বর্তমান মূল্য ('+bn(Math.round(e.last.w))+' কেজি × ৳'+bn(e.rate)+')', fmtMoney(e.value));
     if(e.purchase>0) row('কেনা মূল্যের তুলনায়', e.value>=e.purchase ? fmtMoney(e.value-e.purchase)+' বেশি' : fmtMoney(e.purchase-e.value)+' কম', col(e.value-e.purchase));
   } else row('বর্তমান মূল্য', '<span class="sub">'+(e.rate>0 ? 'ওজন নেই' : 'রেট নেই')+'</span>');
-  row('গড় দৈনিক খরচ', fmtMoney(e.dailyCost)+' / দিন');
+  row(e.rc ? 'দৈনিক খরচ (গত ৩০ দিনের গড়)' : 'গড় দৈনিক খরচ', fmtMoney(e.dailyCost)+' / দিন');
+  if(e.rc) rows.push('<div class="sub" style="padding:1px 0 4px">খাবার '+fmtMoney((e.rc.feedShare+e.rc.directFeed)/e.rc.days)+' · লেবার/বিদ্যুৎ '+fmtMoney(e.rc.oh/e.rc.days)+' · চিকিৎসা '+fmtMoney(e.rc.health/e.rc.days)+' (প্রতিদিন)</div>');
+  if(e.estW) rows.push('<div class="sub" style="color:#b9741a;padding-bottom:3px">⚖️ ওজনের রেকর্ড নেই — খাবারের ভাগ বয়স থেকে অনুমান করে ধরা হয়েছে</div>');
   if(e.kind==='grow'){
     if(e.adg!=null) row('দৈনিক ওজন বৃদ্ধির মূল্য', e.gainDay!=null ? sign(e.gainDay)+' / দিন' : '—', e.gainDay!=null ? col(e.gainDay) : '');
     if(e.net!=null) row('দৈনিক নিট (বৃদ্ধি − খরচ)', sign(e.net)+' / দিন', col(e.net));
@@ -3165,6 +3169,75 @@ function renderLinBtn(sp) {
   var a = LIN[sp].id ? findAnimal(sp, LIN[sp].id) : null;
   b.innerHTML = a ? pickBtn(sp, a, '') : '<div class="pickbtn-in"><div class="av" style="width:40px;height:40px;border-radius:12px;font-size:18px">🌳</div><div style="flex:1;text-align:left;color:#8a948d">কোন পশুর বংশ দেখবেন? (সব পশু)</div><span class="sub">বাছুন ▾</span></div>';
 }
+
+
+// ================= খরচ ভাগ (v1.27): খাবার = জীবন্ত ওজন × দিন; লেবার/রক্ষণাবেক্ষণ/বিদ্যুৎ = মাথাপিছু প্রতিদিন সমান =================
+var CC = { feed:{}, oh:{}, pts:{}, lab:null };
+function ccClear() { CC = { feed:{}, oh:{}, pts:{}, lab:null }; }
+var _save0 = save; save = function() { ccClear(); return _save0.apply(this, arguments); };
+function ccPts(sp, a) { var k = sp+a.id; return CC.pts[k] || (CC.pts[k] = aWeightPts(sp, a)); }
+function estWeight(sp, a, iso) {
+  var age = a.dob ? daysBetween(a.dob, iso) : null;
+  if(sp==='cattle'){ if(age!=null && age>=0) return Math.max(25, Math.min(380, 35+age*0.5)); return a.type==='bull' ? 300 : 330; }
+  if(age!=null && age>=0) return Math.max(2.5, Math.min(a.type==='buck' ? 35 : 30, 3+age*0.1));
+  return a.type==='kid' ? 10 : (a.type==='buck' ? 35 : 30);
+}
+function weightAt(sp, a, iso) {
+  var p = ccPts(sp, a); if(!p.length) return estWeight(sp, a, iso);
+  if(iso<=p[0].date) return p[0].w; if(iso>=p[p.length-1].date) return p[p.length-1].w;
+  for(var i=0;i<p.length-1;i++) if(iso<=p[i+1].date){ var t = daysBetween(p[i].date, iso)/Math.max(1, daysBetween(p[i].date, p[i+1].date)); return p[i].w + (p[i+1].w-p[i].w)*t; }
+  return p[p.length-1].w;
+}
+function presRange(sp, a, mk) {
+  var y = +mk.slice(0,4), mo = +mk.slice(5,7); if(!y || !mo) return null;
+  var ms = new Date(y, mo-1, 1), me = new Date(y, mo, 0), acq = a.acquiredDate || a.dob, s = acq ? new Date(acq+'T00:00:00') : ms, e = me;
+  if(s<ms) s = ms;
+  if(a.status==='sold'){ var sl = lastSaleFor(sp, a.id); if(sl && sl.date){ var sd = new Date(sl.date+'T00:00:00'); if(sd<e) e = sd; } }
+  else if(a.status==='deceased' && a.deceasedDate){ var dd = new Date(a.deceasedDate+'T00:00:00'); if(dd<e) e = dd; }
+  if(e<s) return null; return { s:s, e:e, days: Math.round((e-s)/864e5)+1 };
+}
+function feedMonthInfo(sp, mk) {
+  var key = sp+mk; if(CC.feed[key]) return CC.feed[key];
+  var db = speciesDB(sp), pool = 0, wts = {}, tot = 0, mid = mk+'-15';
+  db.feed.forEach(function(f){ if(!f.animalId && monthKey(f.date)===mk) pool += f.cost||0; });
+  db.animals.forEach(function(a){ var pr = presRange(sp, a, mk); if(pr){ var w = Math.max(1, weightAt(sp, a, mid))*pr.days; wts[a.id] = w; tot += w; } });
+  return CC.feed[key] = { pool:pool, wts:wts, tot:tot };
+}
+function feedShareMonth(sp, id, mk) { var i = feedMonthInfo(sp, mk); return (i.tot>0 && i.wts[id]) ? i.wts[id]/i.tot*i.pool : 0; }
+function ohMonthInfo(mk) {
+  if(CC.oh[mk]) return CC.oh[mk]; if(!CC.lab) CC.lab = monthlyLabourPools();
+  var pool = CC.lab[mk]||0, wts = {}, tot = 0;
+  DB.overhead.expenses.forEach(function(e){ if(monthKey(e.date)===mk) pool += e.cost||0; });
+  ['cattle','goats'].forEach(function(sp){ speciesDB(sp).animals.forEach(function(a){ var pr = presRange(sp, a, mk); if(pr){ wts[sp+'_'+a.id] = pr.days; tot += pr.days; } }); });
+  return CC.oh[mk] = { pool:pool, wts:wts, tot:tot };
+}
+function ohShareMonth(sp, id, mk) { var i = ohMonthInfo(mk), k = sp+'_'+id; return (i.tot>0 && i.wts[k]) ? i.wts[k]/i.tot*i.pool : 0; }
+computeFeedShareForAnimal = function(sp, id) {
+  var m = {}; speciesDB(sp).feed.forEach(function(f){ if(!f.animalId && f.date) m[monthKey(f.date)] = 1; });
+  return Object.keys(m).reduce(function(s,mk){ return s + feedShareMonth(sp, id, mk); },0);
+};
+computeLabourOverheadShareForAnimal = function(sp, id) {
+  if(!CC.lab) CC.lab = monthlyLabourPools();
+  var m = Object.assign({}, CC.lab); DB.overhead.expenses.forEach(function(e){ if(e.date) m[monthKey(e.date)] = 1; });
+  return Object.keys(m).reduce(function(s,mk){ return s + ohShareMonth(sp, id, mk); },0);
+};
+// গত ৩০ দিনের দৈনিক খরচ (কেনা দাম বাদে)
+function recentCost(sp, a) {
+  var today = todayISO(), f0 = new Date(today+'T12:00:00'); f0.setDate(f0.getDate()-29); var fs = f0.toISOString().slice(0,10);
+  var rs = new Date(fs+'T00:00:00'), re = new Date(today+'T00:00:00'), days = 0, feedShare = 0, oh = 0, db = speciesDB(sp);
+  getMonthsBetween(fs.slice(0,7), today.slice(0,7)).forEach(function(mk){
+    var pr = presRange(sp, a, mk); if(!pr) return;
+    var s = pr.s>rs ? pr.s : rs, e = pr.e<re ? pr.e : re; if(e<s) return;
+    var ov = Math.round((e-s)/864e5)+1, fr = ov/pr.days; days += ov; feedShare += feedShareMonth(sp, a.id, mk)*fr; oh += ohShareMonth(sp, a.id, mk)*fr;
+  });
+  if(days<=0) return null;
+  var inR = function(x){ return x.animalId===a.id && x.date>=fs && x.date<=today; };
+  var directFeed = db.feed.filter(inR).reduce(function(s,x){ return s+(x.cost||0); },0), health = db.health.filter(inR).reduce(function(s,x){ return s+(x.cost||0); },0);
+  return { days:days, feedShare:feedShare, directFeed:directFeed, oh:oh, health:health, total: feedShare+directFeed+oh+health };
+}
+var _ra2 = renderAnimals; renderAnimals = function(sp){ ccClear(); _ra2(sp); };
+var _rd2 = renderDashboard; renderDashboard = function(){ ccClear(); _rd2(); };
+if(typeof renderFinance==='function'){ var _rf2 = renderFinance; renderFinance = function(){ ccClear(); return _rf2.apply(this, arguments); }; }
 
 // ================= FINANCE =================
 function cattleFinance() {
