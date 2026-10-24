@@ -219,6 +219,32 @@ img{cursor:zoom-in}
 .erow{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:3px 0;border-bottom:1px dashed rgba(0,0,0,.07)}
 .erow span{color:#555}.erow b{text-align:right}
 .econ .ev{margin-top:8px;font-size:12.5px;font-weight:700}
+.galhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.gal{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px;margin-bottom:12px;-webkit-overflow-scrolling:touch}
+.gi{position:relative;flex:0 0 78%;scroll-snap-align:start;border-radius:14px;overflow:hidden;background:#f2f4f0;border:1px solid var(--line)}
+.gi.one{flex-basis:100%}
+.gi img{width:100%;height:210px;object-fit:cover;display:block}
+.gph{height:210px;display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:12px}
+.gc{padding:7px 10px;font-size:12.5px;display:flex;flex-direction:column;gap:1px}
+.gc span{color:var(--mut);font-size:11px}
+.gnew{position:absolute;top:8px;left:8px;background:var(--g);color:#fff;font-style:normal;font-size:10px;padding:2px 9px;border-radius:10px}
+.gx{position:absolute;top:8px;right:8px;border:0;background:rgba(0,0,0,.45);color:#fff;border-radius:50%;width:26px;height:26px;font-size:12px}
+.seg2{display:flex;gap:6px;margin-bottom:10px}
+.seg2 button{flex:1;padding:9px 4px;border-radius:12px;border:1px solid var(--line);background:#fff;font:inherit;font-size:12.5px;font-weight:600;color:#555}
+.seg2 button.on{background:var(--g);color:#fff;border-color:var(--g)}
+.sugbox{display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.14);z-index:30;max-height:240px;overflow-y:auto}
+.sugrow{padding:9px 12px;border-bottom:1px solid #f1f3ef;cursor:pointer}
+.sugrow:last-child{border-bottom:0}
+.rc{cursor:pointer;padding:5px 11px}
+.exq{display:flex;gap:10px}
+.exq input{font-size:22px;font-weight:800;text-align:center}
+.exhist{background:#f6f8f5;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:12px}
+.exhist .et{font-size:12px;font-weight:800;color:var(--g2);margin-bottom:5px}
+.exmore summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--g2);padding:6px 0}
+.toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#1d2420;color:#fff;padding:10px 18px;border-radius:24px;font-size:13px;font-weight:600;opacity:0;transition:.25s;z-index:1100;max-width:90%}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.erow.tot{border-top:1px solid rgba(0,0,0,.18);border-bottom:0;font-weight:800;padding-top:6px;margin-top:2px}
+.erow.info{opacity:.85}
 @media print{body *{visibility:hidden}#payroll-report,#payroll-report *{visibility:visible}#payroll-report{position:absolute;left:0;top:0;width:100%;border:0}.no-print{display:none!important}}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -519,7 +545,7 @@ img{cursor:zoom-in}
       <input type="file" id="an-photo-gallery" accept="image/*" style="display:none" onchange="previewPhoto(this,'an-photo-preview')">
       <img id="an-photo-preview" class="photo-preview" style="display:none">
     </div>
-    <div class="form-group"><label>ট্যাগ / আইডি *</label><input type="text" id="an-tag" placeholder="e.g. C-01"></div>
+    <div class="form-group"><label>ছবির তারিখ (নতুন ছবি দিলে, বয়স-শিরোনামের জন্য)</label><input type="date" id="an-photo-date"></div><div class="form-group"><label>ট্যাগ / আইডি *</label><input type="text" id="an-tag" placeholder="e.g. C-01"></div>
     <div class="form-group"><label>ধরন *</label><select id="an-type"></select></div>
     <div class="form-group"><label>নাম</label><input type="text" id="an-name"></div>
     <div class="form-group"><label>জাত</label><input type="text" id="an-breed"></div>
@@ -666,31 +692,7 @@ img{cursor:zoom-in}
 </div>
 
 <!-- ================= MODAL: FEED/EXPENSE ================= -->
-<div id="modal-feed" class="modal-overlay">
-  <div class="modal">
-    <div class="modal-header"><h3>খরচ যোগ করুন</h3><button class="modal-close" onclick="closeModal('modal-feed')">✕</button></div>
-    <div class="form-group"><label>কার জন্য</label><select id="fe-species" onchange="feSpeciesChanged()"><option value="cattle">🐄 গরু</option><option value="goats">🐐 ছাগল</option></select></div>
-    <div class="two-col">
-      <div class="form-group"><label>তারিখ *</label><input type="date" id="fe-date"></div>
-      <div class="form-group"><label>ধরন</label><select id="fe-category" onchange="feCatChanged()"><option value="Feed">খাবার</option><option value="Medicine">ওষুধ</option><option value="Equipment">সরঞ্জাম</option><option value="Other">অন্যান্য</option></select></div>
-    </div>
-    <div id="fe-feedbox" class="card" style="background:var(--gl);border:0;padding:12px">
-      <div class="form-group"><label>কোন উপাদান কেনা হলো? (দাম অটো হালনাগাদ হবে)</label><select id="fe-ing" onchange="feIngPicked()"></select></div>
-      <div class="form-group" style="margin:0"><label>রেশিও (বাছলে এটিই সক্রিয় রেশিও হবে)</label><select id="fe-ratio"></select></div>
-    </div>
-    <div class="form-group"><label>বিবরণ *</label><input type="text" id="fe-item"></div>
-    <div class="two-col">
-      <div class="form-group"><label>পরিমাণ</label><input type="number" id="fe-qty"></div>
-      <div class="form-group"><label>একক</label><input type="text" id="fe-unit" placeholder="কেজি"></div>
-    </div>
-    <div class="form-group"><label>খরচ (৳) *</label><input type="number" id="fe-cost"></div>
-    <div class="form-group"><label>সরবরাহকারী</label><input type="text" id="fe-supplier"></div>
-    <div class="form-group"><label>নির্দিষ্ট পশুর জন্য (ঐচ্ছিক)</label><select id="fe-animal"></select>
-      <div class="small-note">ফাঁকা রাখলে যৌথ খরচ ধরা হবে, অ্যাপ সব পশুর মধ্যে ন্যায্যভাবে ভাগ করবে। শুধু নির্দিষ্ট পশুর জন্য হলে তাকে বাছুন।</div>
-    </div>
-    <button class="btn btn-primary" onclick="saveFeed()">সংরক্ষণ</button>
-  </div>
-</div>
+<div id="modal-feed" class="modal-overlay"><div class="modal" id="fe-box"></div></div>
 
 <div id="modal-nu" class="modal-overlay"><div class="modal" id="nu-box"></div></div>
 <div id="modal-pick" class="modal-overlay"><div class="modal" id="pk-box"></div></div>
@@ -1032,6 +1034,7 @@ function saveAnimal() {
       notes: document.getElementById('an-notes').value.trim(),
       photo: photoData
     };
+    try{ galAdded(species, animal, photoData, editId); }catch(e){ console.error(e); }
     if(editId){
       var idx = db.animals.findIndex(function(a){ return a.id===editId; });
       if(idx>=0){ if(!photoData) animal.photo = db.animals[idx].photo; db.animals[idx] = animal; }
@@ -1165,7 +1168,7 @@ function viewAnimal(species, id) {
   var health = db.health.filter(function(h){ return h.animalId===id; }).slice().sort(function(x,y){ return y.date.localeCompare(x.date); });
   var weightHist = getAnimalWeightHistory(species, id);
   var html = '';
-  if(a.photo) html += '<img src="'+a.photo+'" style="width:100%;border-radius:10px;margin-bottom:12px;max-height:200px;object-fit:cover">';
+  html += galleryHtml(species, a);
   html += '<span class="animal-tag tag-'+a.type+'">'+typeLabel(species,a.type)+'</span> ';
   if(a.status==='sold') html += '<span class="badge badge-orange">Sold</span>';
   else if(a.status==='deceased') html += '<span class="badge badge-gray">Deceased</span>';
@@ -2878,7 +2881,7 @@ function econCore(sp, a) {
     o.milk = { price:price, a7:di.a7, dayVal:di.a7*price, litres:litres, totalVal:litres*price };
   }
   o.gainDay = (o.adg!=null && rate>0) ? o.adg*rate : null;
-  var ret = (o.value||0) + (o.milk ? o.milk.totalVal : 0) + (o.calves ? o.calves.val : 0);
+  var ret = (o.value||0) + (o.milk ? o.milk.totalVal : 0);   // বাছুরের মূল্য শুধু তথ্য, হিসাবে ধরা নেই
   o.ret = ret; o.profit = (o.value!=null) ? ret - o.cost : null;
   o.net = dairy ? (o.milk && o.milk.price>0 ? o.milk.dayVal - o.dailyCost : null) : (o.gainDay!=null ? o.gainDay - o.dailyCost : null);
   var pr = o.profit, nt = o.net, v;
@@ -2889,19 +2892,21 @@ function econCore(sp, a) {
   else if(pr<0 && nt>0){ var dn = Math.ceil(-pr/nt); v = { k:'wait', t: dn>1000 ? '⏳ লোকসান পুষিয়ে উঠতে অনেক সময় লাগবে' : '⏳ এখন লোকসান, তবে প্রতিদিন লাভ হচ্ছে — প্রায় '+bn(dn)+' দিনে খরচ উঠবে' }; }
   else v = { k:'bad', t:'🔴 লোকসানি — প্রতিদিন '+fmtMoney(-nt)+' লোকসান। বিক্রি বা খাদ্য পর্যালোচনা করুন' };
   o.v = v;
-  if(o.kind==='dairy' && !(o.milk && o.milk.a7>0) && pr!=null) o.v.t += (breedInfo(sp, a).preg!=null ? ' (গর্ভবতী — বাছুর হলে আয় যোগ হবে)' : ' (এখন দুধ দিচ্ছে না)');
+  if(o.kind==='dairy' && !(o.milk && o.milk.a7>0) && pr!=null) o.v.t += (breedInfo(sp, a).preg!=null ? ' (গর্ভবতী — প্রসবের পর দুধ শুরু হবে)' : ' (এখন দুধ দিচ্ছে না)');
   return o;
 }
 function econHtml(sp, a) {
   var e; try{ e = econCore(sp, a); }catch(err){ return ''; }
   var rows = [], row = function(l, v, c){ rows.push('<div class="erow"><span>'+l+'</span><b'+(c?' style="color:'+c+'"':'')+'>'+v+'</b></div>'); };
   var sign = function(x){ return (x>=0?'+':'−')+fmtMoney(Math.abs(x)); }, col = function(x){ return x>=0 ? '#1b7a4a' : '#b5392e'; };
-  row('কেনা দাম', e.purchase>0 ? fmtMoney(e.purchase) : 'খামারে জন্ম');
-  row('এ পর্যন্ত মোট খরচ', fmtMoney(e.cost));
+  if(e.purchase>0) row('কেনা দাম', fmtMoney(e.purchase));
+  row('এ পর্যন্ত খরচ <i class="sub">(খাবার, চিকিৎসা, লেবার/বিদ্যুৎ)</i>', fmtMoney(e.running));
+  rows.push('<div class="erow tot"><span>'+(e.purchase>0 ? 'মোট (কেনা দাম + এ পর্যন্ত খরচ)' : 'মোট খরচ')+'</span><b>'+fmtMoney(e.cost)+'</b></div>');
   if(e.value!=null){
-    row('বর্তমান মূল্য ('+bn(Math.round(e.last.w))+' কেজি × ৳'+bn(e.rate)+')', fmtMoney(e.value));
+    row('বর্তমান বাজার মূল্য <i class="sub">('+bn(Math.round(e.last.w))+' কেজি × ৳'+bn(e.rate)+')</i>', fmtMoney(e.value), '#0f766e');
     if(e.purchase>0) row('কেনা মূল্যের তুলনায়', e.value>=e.purchase ? fmtMoney(e.value-e.purchase)+' বেশি' : fmtMoney(e.purchase-e.value)+' কম', col(e.value-e.purchase));
-  } else row('বর্তমান মূল্য', '<span class="sub">'+(e.rate>0 ? 'ওজন নেই' : 'রেট নেই')+'</span>');
+  } else row('বর্তমান বাজার মূল্য', '<span class="sub">'+(e.rate>0 ? 'ওজন নেই' : 'রেট নেই (হিসাব ট্যাবে দিন)')+'</span>');
+  if(e.kind==='dairy') row('মোট দুধের বিক্রয় মূল্য <i class="sub">('+bn(Math.round(e.milk.litres))+' লি. × গড় দাম)</i>', e.milk.price>0 ? fmtMoney(e.milk.totalVal) : '<span class="sub">দুধ বিক্রির দাম নেই</span>', '#0f766e');
   row(e.rc ? 'দৈনিক খরচ (গত ৩০ দিনের গড়)' : 'গড় দৈনিক খরচ', fmtMoney(e.dailyCost)+' / দিন');
   if(e.rc) rows.push('<div class="sub" style="padding:1px 0 4px">খাবার '+fmtMoney((e.rc.feedShare+e.rc.directFeed)/e.rc.days)+' · লেবার/বিদ্যুৎ '+fmtMoney(e.rc.oh/e.rc.days)+' · চিকিৎসা '+fmtMoney(e.rc.health/e.rc.days)+' (প্রতিদিন)</div>');
   if(e.estW) rows.push('<div class="sub" style="color:#b9741a;padding-bottom:3px">⚖️ ওজনের রেকর্ড নেই — খাবারের ভাগ বয়স থেকে অনুমান করে ধরা হয়েছে</div>');
@@ -2913,11 +2918,12 @@ function econHtml(sp, a) {
       if(need>0) row('খরচ ওঠার ওজন', bn(Math.round(bew))+' কেজি (আরও '+bn(Math.round(need))+' কেজি'+(e.adg>0 ? ' · প্রায় '+bn(Math.ceil(need/e.adg))+' দিন' : '')+')');
       else row('খরচ ওঠার ওজন', bn(Math.round(bew))+' কেজি — ✓ পেরিয়ে গেছে', '#1b7a4a');
     }
-  } else {
-    if(e.milk && (e.milk.litres>0 || e.milk.a7>0)){ row('দৈনিক দুধের আয় ('+bn(Math.round(e.milk.a7*10)/10)+' লি. × ৳'+bn(Math.round(e.milk.price*10)/10)+')', e.milk.price>0 ? fmtMoney(e.milk.dayVal)+' / দিন' : '<span class="sub">দুধ বিক্রির দাম নেই</span>'); if(e.net!=null) row('দৈনিক নিট (দুধ − খরচ)', sign(e.net)+' / দিন', col(e.net)); row('এ পর্যন্ত দুধের মূল্য', fmtMoney(e.milk.totalVal)+' ('+bn(Math.round(e.milk.litres))+' লি.)'); }
-    if(e.calves) row('বাছুর', bn(e.calves.n)+' টি'+(e.calves.n ? ' · আনুমানিক '+fmtMoney(e.calves.val) : ''));
+  } else if(e.kind==='dairy' && e.milk && (e.milk.litres>0 || e.milk.a7>0)){
+    row('দৈনিক দুধের আয় ('+bn(Math.round(e.milk.a7*10)/10)+' লি. × ৳'+bn(Math.round(e.milk.price*10)/10)+')', e.milk.price>0 ? fmtMoney(e.milk.dayVal)+' / দিন' : '—');
+    if(e.net!=null) row('দৈনিক নিট (দুধ − খরচ)', sign(e.net)+' / দিন', col(e.net));
   }
-  if(e.profit!=null) row('মোট লাভ / ক্ষতি', sign(e.profit), col(e.profit));
+  if(e.calves && e.calves.n) rows.push('<div class="erow info"><span>বাছুর <i class="sub">(শুধু তথ্য — হিসাবে ধরা নেই)</i></span><b>'+bn(e.calves.n)+' টি · সম্ভাব্য '+fmtMoney(e.calves.val)+'</b></div>');
+  if(e.profit!=null) row(e.kind==='dairy' ? 'মোট লাভ / ক্ষতি <i class="sub">(বাজার মূল্য + দুধ − মোট খরচ)</i>' : 'মোট লাভ / ক্ষতি <i class="sub">(বাজার মূল্য − মোট খরচ)</i>', sign(e.profit), col(e.profit));
   return '<div class="econ '+e.v.k+'"><div class="et">💰 লাভ-ক্ষতির হিসাব</div>'+rows.join('')+'<div class="ev">'+e.v.t+'</div></div>';
 }
 function animalInfoHtml(sp, a) {
@@ -3151,7 +3157,7 @@ function renderDashTop() {
   if(cattle.length+goats.length){
     var pl = tv-tc;
     h += '<div class="card"><h3>💹 পশুপালের লাভ-ক্ষতি <span class="sub" style="font-weight:400">· বর্তমান মূল্য ধরে</span></h3><div class="mini2g">'+
-      cell('মোট আয়/মূল্য (বর্তমান মূল্য + দুধ + বাছুর)', fmtMoney(tv), '#1b7a4a')+cell('মোট খরচ', fmtMoney(tc), '#b5392e')+
+      cell('মোট আয়/মূল্য (বর্তমান মূল্য + দুধের বিক্রয়)', fmtMoney(tv), '#1b7a4a')+cell('মোট খরচ', fmtMoney(tc), '#b5392e')+
       cell('মোট লাভ / ক্ষতি', (pl>=0?'▲ ':'▼ ')+fmtMoney(Math.abs(pl)), pl>=0?'#1b7a4a':'#b5392e')+
       cell('লাভজনক / লোকসানি পশু', bn((cnt.good||0)+(cnt.ok||0))+' / '+bn((cnt.bad||0)+(cnt.warn||0)), '#2a6496')+'</div>';
     losers.sort(function(x,y){ return x.e.profit-y.e.profit; });
@@ -3238,6 +3244,219 @@ function recentCost(sp, a) {
 var _ra2 = renderAnimals; renderAnimals = function(sp){ ccClear(); _ra2(sp); };
 var _rd2 = renderDashboard; renderDashboard = function(){ ccClear(); _rd2(); };
 if(typeof renderFinance==='function'){ var _rf2 = renderFinance; renderFinance = function(){ ccClear(); return _rf2.apply(this, arguments); }; }
+
+
+// ================= ছবির অ্যালবাম (v1.30): একাধিক ছবি, বয়স-শিরোনামসহ; প্রোফাইলে শেষ ছবি =================
+var GAL = {}, galDB = null, galListen = false, galSeen = false, galPushed = {};
+function galKey(sp, aid, pid) { return sp+'_'+aid+'_'+pid; }
+(function(){
+  try{
+    if(!window.indexedDB) return;
+    var rq = indexedDB.open('naz_gallery', 1);
+    rq.onupgradeneeded = function(){ rq.result.createObjectStore('p'); };
+    rq.onsuccess = function(){
+      galDB = rq.result;
+      try{ var cr = galDB.transaction('p','readonly').objectStore('p').openCursor();
+        cr.onsuccess = function(e){ var c = e.target.result; if(c){ if(!GAL[c.key]) GAL[c.key] = c.value; c.continue(); } else galRefresh(); };
+      }catch(e){}
+    };
+  }catch(e){}
+})();
+function galRefresh() { try{ ['cattle','goats'].forEach(function(sp){ if(document.getElementById(sp+'-animal-list')) renderAnimals(sp); }); }catch(e){} }
+function galStore(key, data) { GAL[key] = data; if(galDB){ try{ galDB.transaction('p','readwrite').objectStore('p').put(data, key); }catch(e){} } }
+function galDrop(key) { delete GAL[key]; if(galDB){ try{ galDB.transaction('p','readwrite').objectStore('p').delete(key); }catch(e){} } try{ if(typeof fbReady!=='undefined' && fbReady && fbDb) fbDb.collection('farmledger_gallery').doc(key).delete().catch(function(){}); }catch(e){} }
+function galCloud(key, date) { try{ if(typeof fbReady!=='undefined' && fbReady && fbDb && GAL[key]){ fbDb.collection('farmledger_gallery').doc(key).set({ data:GAL[key], date:date||'', updatedAt:Date.now() }).catch(function(){}); galPushed[key] = true; } }catch(e){} }
+setInterval(function(){
+  try{
+    if(typeof fbReady==='undefined' || !fbReady || !fbDb) return;
+    if(!galListen){ galListen = true;
+      fbDb.collection('farmledger_gallery').onSnapshot(function(snap){
+        var got = false; snap.forEach(function(d){ var v = d.data(); galPushed[d.id] = true; if(v && v.data && !GAL[d.id]){ galStore(d.id, v.data); got = true; } });
+        galSeen = true; if(got) galRefresh();
+      }, function(){});
+    }
+    if(!galSeen) return;
+    ['cattle','goats'].forEach(function(sp){ DB[sp].animals.forEach(function(a){ (a.photos||[]).forEach(function(p){ var k = galKey(sp, a.id, p.id); if(GAL[k] && !galPushed[k]) galCloud(k, p.date); }); }); });
+  }catch(e){}
+}, 3000);
+
+function ageYMDat(dob, onIso) {
+  if(!dob || !onIso) return ''; var d = new Date(dob+'T12:00:00'), t = new Date(onIso+'T12:00:00');
+  var y = t.getFullYear()-d.getFullYear(), m = t.getMonth()-d.getMonth(), dd = t.getDate()-d.getDate();
+  if(dd<0){ m--; dd += new Date(t.getFullYear(), t.getMonth(), 0).getDate(); } if(m<0){ y--; m += 12; }
+  if(y<0) return '';
+  var p = []; if(y) p.push(bn(y)+' বছর'); if(m) p.push(bn(m)+' মাস'); if(dd || !p.length) p.push(bn(dd)+' দিন'); return p.join(' ');
+}
+function galEntries(sp, a) {
+  return (a.photos||[]).map(function(x,i){ return { x:x, i:i }; }).sort(function(p,q){ return (q.x.date||'').localeCompare(p.x.date||'') || q.i-p.i; }).map(function(p){ return p.x; });
+}
+function galEnsure(sp, a) {
+  if(!a.photos) a.photos = [];
+  if(!a.photos.length && a.photo){ var pid = 'p0'; a.photos.push({ id:pid, date:'', legacy:true }); galStore(galKey(sp, a.id, pid), a.photo); galCloud(galKey(sp, a.id, pid), ''); }
+}
+function galSetLatest(sp, a) {
+  var es = galEntries(sp, a); if(!es.length) return;
+  var d = GAL[galKey(sp, a.id, es[0].id)]; if(d) a.photo = d;
+}
+// পশু সংরক্ষণের সময় (ফর্ম থেকে): নতুন ছবি অ্যালবামে যোগ, পুরনোগুলো থেকে যায়
+function galAdded(sp, animal, photoData, editId) {
+  var old = editId ? findAnimal(sp, editId) : null;
+  animal.photos = old && old.photos ? old.photos.slice() : [];
+  if(old && !animal.photos.length && old.photo){ animal.photos.push({ id:'p0', date:'', legacy:true }); galStore(galKey(sp, animal.id, 'p0'), old.photo); galCloud(galKey(sp, animal.id, 'p0'), ''); }
+  if(photoData){
+    var pid = 'p'+uid(), date = gv('an-photo-date') || todayISO();
+    animal.photos.push({ id:pid, date:date }); galStore(galKey(sp, animal.id, pid), photoData); galCloud(galKey(sp, animal.id, pid), date);
+  }
+  if(animal.photos.length) galSetLatest(sp, animal);
+}
+function galData(sp, a, e) { return GAL[galKey(sp, a.id, e.id)] || (e.legacy ? a.photo : '') || ''; }
+function galleryHtml(sp, a) {
+  var es = galEntries(sp, a);
+  if(!es.length && a.photo) es = [{ id:'p0', date:'', legacy:true }];
+  var h = '<div class="galhead"><b>📷 ছবির অ্যালবাম'+(es.length>1 ? ' ('+bn(es.length)+'টি)' : '')+'</b><button class="btn btn-sm btn-green" onclick="galAddOpen(\''+sp+'\',\''+a.id+'\')">+ নতুন ছবি</button></div>';
+  if(!es.length) return h + '<div class="empty-state" style="padding:14px">এখনও কোনো ছবি নেই।</div>';
+  h += '<div class="gal">';
+  es.forEach(function(e, i){
+    var d = galData(sp, a, e), cap = e.date ? (a.dob ? ageYMDat(a.dob, e.date)+' বয়সে' : fmtDateBn(e.date)) : 'আগের ছবি (তারিখ জানা নেই)';
+    h += '<div class="gi'+(es.length===1?' one':'')+'">'+(d ? '<img src="'+d+'">' : '<div class="gph">ছবি লোড হচ্ছে…</div>')+'<div class="gc"><b>'+cap+'</b>'+(e.date ? '<span>'+fmtDateBn(e.date)+'</span>' : '')+'</div>'+(i===0 ? '<i class="gnew">সর্বশেষ · প্রোফাইলে</i>' : '')+'<button class="gx" onclick="galDel(\''+sp+'\',\''+a.id+'\',\''+e.id+'\')">✕</button></div>';
+  });
+  return h + '</div>';
+}
+var GP = { sp:'', id:'', data:'' };
+function galAddOpen(sp, id) {
+  GP = { sp:sp, id:id, data:'' };
+  document.getElementById('pk-box').innerHTML = '<div class="modal-header"><h3>নতুন ছবি যোগ</h3><button class="modal-close" onclick="closeModal(\'modal-pick\')">✕</button></div>'+
+    '<div class="form-group"><label>ছবি</label><input type="file" accept="image/*" onchange="galPick(this)"></div><img id="gp-prev" style="display:none;width:100%;border-radius:12px;margin-bottom:10px;max-height:240px;object-fit:cover">'+
+    '<div class="form-group"><label>ছবি তোলার তারিখ</label><input type="date" id="gp-date" value="'+todayISO()+'" onchange="galAgeNote()"></div><div class="small-note" id="gp-age" style="margin:-6px 0 10px"></div><button class="btn btn-primary" onclick="galSave()">সংরক্ষণ</button>';
+  galAgeNote(); openModal('modal-pick');
+}
+function galAgeNote() { var a = findAnimal(GP.sp, GP.id), el = document.getElementById('gp-age'); if(el) el.textContent = (a && a.dob && gv('gp-date')) ? 'ছবির শিরোনাম হবে: '+ageYMDat(a.dob, gv('gp-date'))+' বয়সে' : ''; }
+function galPick(inp) {
+  var f = inp.files && inp.files[0]; if(!f) return;
+  resizeImageFile(f, 720, 0.55).then(function(d){ GP.data = d; var p = document.getElementById('gp-prev'); p.src = d; p.style.display = 'block'; }).catch(function(){ alert('ছবিটি প্রক্রিয়া করা যায়নি, অন্য ছবি দিন'); });
+}
+function galAddPhoto(sp, aid, date, data) {
+  var a = findAnimal(sp, aid); if(!a) return; galEnsure(sp, a);
+  var pid = 'p'+uid(); a.photos.push({ id:pid, date:date }); galStore(galKey(sp, aid, pid), data); galCloud(galKey(sp, aid, pid), date); galSetLatest(sp, a); save();
+}
+function galSave() {
+  if(!GP.data){ alert('আগে ছবি বাছুন'); return; }
+  galAddPhoto(GP.sp, GP.id, gv('gp-date') || todayISO(), GP.data); closeModal('modal-pick'); viewAnimal(GP.sp, GP.id); renderAnimals(GP.sp);
+}
+function galDel(sp, aid, pid) {
+  if(!confirm('এই ছবিটি অ্যালবাম থেকে মুছে ফেলবেন?')) return;
+  var a = findAnimal(sp, aid); if(!a) return; galEnsure(sp, a);
+  a.photos = a.photos.filter(function(p){ return p.id!==pid; }); galDrop(galKey(sp, aid, pid));
+  if(a.photos.length) galSetLatest(sp, a); else a.photo = '';
+  save(); viewAnimal(sp, aid); renderAnimals(sp);
+}
+var _oam3 = openAnimalModal; openAnimalModal = function(sp){ _oam3(sp); var e = document.getElementById('an-photo-date'); if(e) e.value = todayISO(); };
+var _ea3 = editAnimal; editAnimal = function(sp, id){ _ea3(sp, id); var e = document.getElementById('an-photo-date'); if(e) e.value = todayISO(); };
+
+
+// ================= আধুনিক খরচ যোগ (v1.30): নাম লিখলে সাজেশন, অটো-ফিল, দামের ইতিহাস =================
+var EX = { sp:'cattle', cat:'Feed', lastU:0, key:'' };
+function exKey(s) { return (s||'').trim().toLowerCase(); }
+function exUP(r) { return r.qty>0 && r.cost>0 ? r.cost/r.qty : null; }
+function exItems() {
+  var m = {};
+  ['cattle','goats'].forEach(function(sp){ speciesDB(sp).feed.forEach(function(f){ var k = exKey(f.item); if(!k) return; var g = m[k] || (m[k] = { key:k, name:f.item, recs:[] }); g.recs.push(Object.assign({ sp:sp }, f)); }); });
+  return Object.keys(m).map(function(k){ var g = m[k]; g.recs.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); }); g.last = g.recs[0]; return g; }).sort(function(a,b){ return (b.last.date||'').localeCompare(a.last.date||''); });
+}
+function toast(msg) {
+  var t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t);
+  setTimeout(function(){ t.classList.add('on'); }, 10); setTimeout(function(){ t.classList.remove('on'); setTimeout(function(){ t.remove(); }, 300); }, 2300);
+}
+function exChips(id, list, cur, fn) { return '<div class="seg2" id="'+id+'">'+list.map(function(x){ return '<button type="button" class="'+(x[0]===cur?'on':'')+'" onclick="'+fn+'(\''+x[0]+'\')">'+x[1]+'</button>'; }).join('')+'</div>'; }
+function exFillSel() {
+  var sp = EX.sp;
+  document.getElementById('fe-ing').innerHTML = '<option value="">— আলাদা উপাদান নয় —</option>' + DB.nutri.ingredients.map(function(g){ return '<option value="'+g.id+'">'+esc(g.name)+'</option>'; }).join('');
+  document.getElementById('fe-ratio').innerHTML = '<option value="">— কোনো রেশিও নয় —</option>' + nuRatios(sp).map(function(r){ return '<option value="'+r.id+'">'+esc(r.name)+(DB.nutri.active[sp]===r.id?' (সক্রিয়)':'')+'</option>'; }).join('');
+  var sel = document.getElementById('fe-animal'), cur = sel.value; sel.innerHTML = '<option value="">— সবার জন্য (যৌথ খরচ) —</option>';
+  speciesDB(sp).animals.filter(function(a){ return a.status==='active'; }).forEach(function(a){ sel.innerHTML += '<option value="'+a.id+'">'+esc(animalLabel(a))+'</option>'; }); sel.value = cur;
+}
+function exSetSp(sp) { EX.sp = sp; document.getElementById('fe-species').value = sp; [].forEach.call(document.querySelectorAll('#ex-sp button'), function(b, i){ b.classList.toggle('on', ['cattle','goats'][i]===sp); }); exFillSel(); }
+function exSetCat(c) {
+  EX.cat = c; document.getElementById('fe-category').value = c;
+  [].forEach.call(document.querySelectorAll('#ex-cat button'), function(b, i){ b.classList.toggle('on', ['Feed','Medicine','Equipment','Other'][i]===c); });
+  document.getElementById('fe-feedbox').style.display = c==='Feed' ? 'block' : 'none';
+}
+openFeedModal = function(species) {
+  ensureNutri(); EX = { sp: species || 'cattle', cat:'Feed', lastU:0, key:'' };
+  var h = '<div class="modal-header"><h3>খরচ যোগ করুন</h3><button class="modal-close" onclick="closeModal(\'modal-feed\')">✕</button></div>'+
+    '<input type="hidden" id="fe-species"><input type="hidden" id="fe-category">'+
+    exChips('ex-sp', [['cattle','🐄 গরু'],['goats','🐐 ছাগল']], EX.sp, 'exSetSp')+
+    exChips('ex-cat', [['Feed','🌾 খাবার'],['Medicine','💊 ওষুধ'],['Equipment','🔧 সরঞ্জাম'],['Other','📦 অন্যান্য']], 'Feed', 'exSetCat')+
+    '<div class="form-group" style="position:relative"><label>পণ্য / খরচের নাম *</label><input type="text" id="fe-item" autocomplete="off" placeholder="যেমন: ভুট্টা ভাঙা" oninput="exSuggest()" onfocus="exSuggest()"><div id="ex-sug" class="sugbox"></div></div>'+
+    '<div id="ex-recent"></div><div id="ex-hist"></div>'+
+    '<div class="exq"><div class="form-group" style="flex:1.4;margin:0"><label>পরিমাণ</label><input type="number" step="any" id="fe-qty" placeholder="০" oninput="exCalc(\'qty\')"></div><div class="form-group" style="flex:1;margin:0"><label>একক</label><input type="text" id="fe-unit" placeholder="কেজি" oninput="exCalc(\'qty\')"></div></div>'+
+    '<div class="two-col" style="margin-top:10px"><div class="form-group"><label>একক প্রতি দাম (৳)</label><input type="number" step="any" id="fe-uprice" placeholder="০" oninput="exCalc(\'uprice\')"></div><div class="form-group"><label>মোট খরচ (৳) *</label><input type="number" step="any" id="fe-cost" placeholder="০" oninput="exCalc(\'total\')" style="font-weight:800;color:#b5392e"></div></div>'+
+    '<div id="ex-delta" class="small-note" style="margin:-6px 0 10px"></div>'+
+    '<div class="two-col"><div class="form-group"><label>তারিখ *</label><input type="date" id="fe-date" value="'+todayISO()+'"></div><div class="form-group"><label>সরবরাহকারী</label><input type="text" id="fe-supplier"></div></div>'+
+    '<details class="exmore"><summary>⚙️ আরও (নির্দিষ্ট পশু, খাদ্য রেশিও)</summary><div style="margin-top:10px"><div class="form-group"><label>নির্দিষ্ট পশুর জন্য</label><select id="fe-animal"></select><div class="small-note">ফাঁকা রাখলে যৌথ খরচ, সব পশুর মধ্যে ভাগ হবে।</div></div>'+
+    '<div id="fe-feedbox" class="card" style="background:var(--gl);border:0;padding:12px;margin:0"><div class="form-group"><label>কোন উপাদান কেনা হলো? (দাম অটো হালনাগাদ)</label><select id="fe-ing"></select></div><div class="form-group" style="margin:0"><label>রেশিও (বাছলে এটিই সক্রিয় রেশিও)</label><select id="fe-ratio"></select></div></div></div></details>'+
+    '<button class="btn btn-primary" style="margin-top:12px" onclick="saveFeed()">✓ সংরক্ষণ</button>';
+  document.getElementById('fe-box').innerHTML = h;
+  document.getElementById('fe-species').value = EX.sp; document.getElementById('fe-category').value = 'Feed';
+  exFillSel(); exRecent(); openModal('modal-feed');
+};
+function exRecent() {
+  var its = exItems().slice(0,7), box = document.getElementById('ex-recent'); if(!box) return;
+  box.innerHTML = its.length ? '<div class="sub" style="margin:-4px 0 6px">সম্প্রতি কেনা — ট্যাপ করুন:</div><div class="chips" style="margin:0 0 10px">'+its.map(function(g){ return '<span class="badge badge-gray rc" onclick="exPick(\''+esc(g.key).replace(/'/g,'\\\'')+'\')">'+esc(g.name)+'</span>'; }).join('')+'</div>' : '';
+}
+function exSuggest() {
+  var q = exKey(gv('fe-item')), box = document.getElementById('ex-sug'); if(!box) return;
+  var list = exItems().filter(function(g){ return !q || g.key.indexOf(q)>=0; }).slice(0,6);
+  if(!q || (list.length===1 && list[0].key===q)){ box.style.display = 'none'; if(q && list.length===1 && EX.key!==q) exPick(list[0].key, true); return; }
+  if(!list.length){ box.style.display = 'none'; EX.key = ''; document.getElementById('ex-hist').innerHTML = ''; return; }
+  box.innerHTML = list.map(function(g){ var u = exUP(g.last); return '<div class="sugrow" onclick="exPick(\''+esc(g.key).replace(/'/g,'\\\'')+'\')"><b>'+esc(g.name)+'</b><div class="sub">'+(u ? '৳'+nf(u,1)+'/'+(g.last.unit||'একক')+' · ' : '')+(g.last.supplier ? esc(g.last.supplier)+' · ' : '')+fmtDateBn(g.last.date)+' · '+bn(g.recs.length)+' বার</div></div>'; }).join('');
+  box.style.display = 'block';
+}
+function exPick(key, quiet) {
+  var g = exItems().filter(function(x){ return x.key===key; })[0]; if(!g) return; var r = g.recs.filter(function(x){ return x.sp===EX.sp; })[0] || g.last; EX.key = key;
+  document.getElementById('fe-item').value = g.name; document.getElementById('ex-sug').style.display = 'none';
+  exSetSp(r.sp); exSetCat(r.category || 'Feed');
+  document.getElementById('fe-unit').value = r.unit || ''; document.getElementById('fe-supplier').value = r.supplier || '';
+  var u = exUP(r); EX.lastU = u || 0; document.getElementById('fe-uprice').value = u ? Math.round(u*100)/100 : '';
+  document.getElementById('fe-animal').value = r.animalId || ''; document.getElementById('fe-ing').value = r.ingId || ''; document.getElementById('fe-ratio').value = r.ratioId || '';
+  document.getElementById('fe-qty').value = ''; document.getElementById('fe-cost').value = '';
+  document.getElementById('ex-hist').innerHTML = exHistHtml(g); document.getElementById('ex-recent').innerHTML = '';
+  exCalc('qty'); if(!quiet) document.getElementById('fe-qty').focus();
+}
+function exHistHtml(g) {
+  var ups = g.recs.map(exUP).filter(function(x){ return x; }), n = Math.min(5, g.recs.length);
+  var h = '<div class="exhist"><div class="et">🧾 আগের কেনাকাটা — গত '+bn(n)+' বার</div>';
+  for(var i=0;i<n;i++){
+    var r = g.recs[i], u = exUP(r), prev = g.recs[i+1] ? exUP(g.recs[i+1]) : null, ar = '';
+    if(u && prev){ ar = u>prev*1.005 ? ' <i style="color:#b5392e;font-style:normal">▲</i>' : (u<prev*0.995 ? ' <i style="color:#1b7a4a;font-style:normal">▼</i>' : ''); }
+    h += '<div class="erow"><span>'+(r.sp==='goats'?'🐐 ':'🐄 ')+fmtDateBn(r.date)+(r.supplier ? ' · '+esc(r.supplier) : '')+'</span><b>'+(r.qty ? nf(r.qty,1)+' '+esc(r.unit||'')+' · ' : '')+(u ? '৳'+nf(u,1)+'/'+esc(r.unit||'একক')+ar : fmtMoney(r.cost))+'</b></div>';
+  }
+  if(ups.length>1){ var mn = Math.min.apply(null, ups), mx = Math.max.apply(null, ups), av = ups.reduce(function(s,x){ return s+x; },0)/ups.length; h += '<div class="chips" style="margin:8px 0 0"><span class="badge badge-green">সর্বনিম্ন ৳'+nf(mn,1)+'</span><span class="badge badge-gray">গড় ৳'+nf(av,1)+'</span><span class="badge badge-red">সর্বোচ্চ ৳'+nf(mx,1)+'</span></div>'; }
+  return h + '</div>';
+}
+function exCalc(src) {
+  var q = parseFloat(gv('fe-qty'))||0, u = parseFloat(gv('fe-uprice'))||0, t = parseFloat(gv('fe-cost'))||0;
+  if(src==='total'){ if(q>0 && t>0){ u = t/q; document.getElementById('fe-uprice').value = Math.round(u*100)/100; } }
+  else if(q>0 && u>0){ t = q*u; document.getElementById('fe-cost').value = Math.round(t*100)/100; }
+  var d = document.getElementById('ex-delta'); if(!d) return;
+  if(u>0 && EX.lastU>0){ var diff = u-EX.lastU, pc = diff/EX.lastU*100; d.innerHTML = Math.abs(pc)<0.5 ? 'গতবারের সমান দাম' : 'গতবারের চেয়ে একক প্রতি <b style="color:'+(diff>0?'#b5392e':'#1b7a4a')+'">৳'+nf(Math.abs(diff),1)+' ('+nf(Math.abs(pc),0)+'%) '+(diff>0?'বেশি':'কম')+'</b>'; }
+  else d.textContent = '';
+}
+saveFeed = function() {
+  var species = gv('fe-species'), date = gv('fe-date'), item = gv('fe-item').trim(), cost = parseFloat(gv('fe-cost'))||0, qty = parseFloat(gv('fe-qty'))||0, unit = gv('fe-unit').trim();
+  var ingId = gv('fe-ing'), ratioId = gv('fe-ratio'), cat = gv('fe-category') || 'Feed';
+  if(!item){ var g0 = nuIng(ingId), r0 = nuRatio(ratioId); item = g0 ? g0.name : (r0 ? r0.name : ''); }
+  if(!date || !item){ alert('তারিখ ও পণ্যের নাম দিন'); return; }
+  if(cost<=0){ alert('মোট খরচ (৳) দিন'); return; }
+  if(cat==='Feed' && !ingId){ var m = DB.nutri.ingredients.filter(function(g){ return exKey(g.name)===exKey(item); })[0]; if(m) ingId = m.id; }
+  speciesDB(species).feed.push({ id: uid(), date: date, category: cat, item: item, qty: qty, unit: unit, cost: cost, supplier: gv('fe-supplier').trim(), animalId: gv('fe-animal') || '', ingId: ingId, ratioId: ratioId });
+  var kg = !unit || /কেজি|kg/i.test(unit);
+  if(cat==='Feed' && ingId && qty>0 && kg){ var g = nuIng(ingId); if(g && (!g.priceDate || date>=g.priceDate)){ g.price = Math.round(cost/qty*100)/100; g.priceDate = date; } }
+  if(cat==='Feed' && ratioId){ DB.nutri.active[species] = ratioId; var r = nuRatio(ratioId); if(r && qty>0 && kg) r.lastBuy = { date: date, price: Math.round(cost/qty*100)/100 }; }
+  save(); closeModal('modal-feed'); renderFeed(species); toast('✓ '+item+' — '+fmtMoney(cost)+' সংরক্ষিত');
+  var p = document.getElementById(species+'-fr-panel'); if(p && p.style.display!=='none') renderFR(species);
+  try{ renderDashboard(); }catch(e){}
+};
 
 // ================= FINANCE =================
 function cattleFinance() {
